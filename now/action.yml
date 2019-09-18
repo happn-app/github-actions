@@ -1,10 +1,9 @@
 name: 'Zeit Now'
 description: 'GitHub Action for making deployments with Zeit Now'
 inputs:
-  tld:
-    description: 'tld'
+  alias:
+    description: 'alias'
     required: true
-    default: 'd2p.cloud'
   env:
     description: 'environment'
     required: true
