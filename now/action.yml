@@ -19,6 +19,6 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.tld }}
+    - ${{ inputs.alias }}
     - ${{ inputs.env }}
     - ${{ inputs.region }}
