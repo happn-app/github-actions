@@ -1,9 +1,6 @@
-name: 'Zeit Now'
-description: 'GitHub Action for making deployments with Zeit Now'
+name: 'Remote testing'
+description: 'GitHub Action for running remote tests'
 inputs:
-  alias:
-    description: 'alias'
-    required: true
   stage:
     description: 'stage'
     required: true
@@ -16,6 +13,5 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.alias }}
     - ${{ inputs.stage }}
     - ${{ inputs.region }}
