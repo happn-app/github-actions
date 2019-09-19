@@ -1,17 +1,11 @@
 name: 'Remote testing'
 description: 'GitHub Action for running remote tests'
 inputs:
-  stage:
-    description: 'stage'
+  url:
+    description: 'test url'
     required: true
-    default: 'canary'
-  region:
-    description: 'region'
-    required: true
-    default: 'eu'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.stage }}
-    - ${{ inputs.region }}
+    - ${{ inputs.url }}
