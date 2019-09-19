@@ -4,14 +4,13 @@ inputs:
   alias:
     description: 'alias'
     required: true
-  stage:
-    description: 'stage'
+  name:
+    description: 'name'
     required: true
-    default: 'canary'
-  region:
-    description: 'region'
-    required: true
-    default: 'eu'
+  env:
+    description: 'env file'
+    required: false
+    default: '.env.test'
   prod:
     description: 'prod'
     required: false
@@ -24,6 +23,6 @@ runs:
   image: 'Dockerfile'
   args:
     - ${{ inputs.alias }}
-    - ${{ inputs.stage }}
-    - ${{ inputs.region }}
+    - ${{ inputs.name }}
+    - ${{ inputs.env }}
     - ${{ inputs.prod }}

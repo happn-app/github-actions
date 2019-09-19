@@ -2,15 +2,16 @@
 
 set -e
 
-REPO="$(cut -d'/' -f2 <<<"$GITHUB_REPOSITORY")"
-ALIAS="$1"
-DEPLOYMENT="$REPO-$2-$3"
+alias=$1
+name=$2
+env=$3
+prod=$4
 
-cp .env.${2}-${3} .env.production
-mv now.json now-${DEPLOYMENT}.json
-jq --arg alias "$ALIAS" --arg name "$DEPLOYMENT" '.name = $name | .alias = $alias' now-$DEPLOYMENT.json > now.json
+cp $env .env.production
+mv now.json now-${name}.json
+jq --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias' now-$name.json > now.json
 
-case $4 in
+case $prod in
   (true)    url=$(now -t $ZEIT_TOKEN --prod);;
   (false)   url=$(now -t $ZEIT_TOKEN);;
 esac
