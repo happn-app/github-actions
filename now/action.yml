@@ -12,6 +12,13 @@ inputs:
     description: 'region'
     required: true
     default: 'eu'
+  prod:
+    description: 'prod'
+    required: false
+    default: false
+outputs:
+  url:
+    description: 'The deployment url'
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -19,3 +26,4 @@ runs:
     - ${{ inputs.alias }}
     - ${{ inputs.stage }}
     - ${{ inputs.region }}
+    - ${{ inputs.prod }}
