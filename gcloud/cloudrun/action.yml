@@ -1,0 +1,21 @@
+name: 'Google Cloud Run Deployment'
+description: 'GitHub Action for making deployments with Google Cloud Run'
+inputs:
+  alias:
+    description: 'alias'
+    required: true
+  stage:
+    description: 'stage'
+    required: true
+    default: 'canary'
+  region:
+    description: 'region'
+    required: true
+    default: 'eu'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.alias }}
+    - ${{ inputs.stage }}
+    - ${{ inputs.region }}
