@@ -12,6 +12,11 @@ inputs:
     description: 'region'
     required: true
     default: 'eu'
+  is_public:
+    description: 'is_public'
+    default: false
+  flags:
+    description: 'flags'
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -19,3 +24,5 @@ runs:
     - ${{ inputs.alias }}
     - ${{ inputs.stage }}
     - ${{ inputs.region }}
+    - ${{ inputs.is_public }}
+    - ${{ inputs.flags }}
