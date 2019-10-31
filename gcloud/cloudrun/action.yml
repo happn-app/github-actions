@@ -14,7 +14,7 @@ inputs:
     default: 'eu'
   is_public:
     description: 'is_public'
-    default: false
+    default: true
   flags:
     description: 'flags'
 runs:
