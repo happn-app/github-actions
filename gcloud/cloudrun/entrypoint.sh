@@ -38,10 +38,10 @@ function inject_runtime_config {
 
 # Builds, tags and pushes container to registry
 function build_tag_push_container {
-  docker build --build-arg GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN} --rm=false -t
+  docker build --build-arg GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN} --rm=false -t \
     ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:${GITHUB_SHA} .
 
-  docker tag ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:${GITHUB_SHA}
+  docker tag ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:${GITHUB_SHA} \
     ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:latest
 
   docker push ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}
