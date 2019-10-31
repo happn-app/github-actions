@@ -16,6 +16,8 @@ esac
 # Configures Google Cloud SDK
 function setup {
   echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+  gcloud components install beta --quiet
+  gcloud components update --quiet
   gcloud config set project ${GCLOUD_PROJECT_ID}
   gcloud config set compute/region ${GCLOUD_REGION}
   gcloud config set run/platform managed
@@ -37,9 +39,9 @@ function inject_runtime_config {
 # Builds, tags and pushes container to registry
 function build_tag_push_container {
   docker build --build-arg GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN} --rm=false -t
-    ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:${{ github.sha }} .
+    ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:${GITHUB_SHA} .
 
-  docker tag ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:${{ github.sha }}
+  docker tag ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:${GITHUB_SHA}
     ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}:latest
 
   docker push ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias}
