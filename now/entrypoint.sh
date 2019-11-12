@@ -7,7 +7,8 @@ name=$2
 env=$3
 prod=$4
 
-cp $env .env.production
+if [ -n "${env}" ]; then cp $env .env.production; fi
+
 mv now.json now-${name}.json
 jq --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias' now-$name.json > now.json
 

@@ -10,7 +10,6 @@ inputs:
   env:
     description: 'env file'
     required: false
-    default: '.env.test'
   prod:
     description: 'prod'
     required: false
