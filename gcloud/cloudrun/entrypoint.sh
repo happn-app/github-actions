@@ -55,7 +55,7 @@ function deploy {
     --project ${GCLOUD_PROJECT_ID} \
     --image ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias} \
     --region ${GCLOUD_REGION} \
-    ${flags}
+    eval echo \${$flags}
 }
 
 setup
