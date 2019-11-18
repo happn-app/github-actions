@@ -49,6 +49,7 @@ function build_tag_push_container {
 
 # Deploys function to Cloudrun
 function deploy {
+  flags=$(eval $flags)
   gcloud beta run deploy ${alias} \
     --quiet \
     ${allow_unauthenticated} \
