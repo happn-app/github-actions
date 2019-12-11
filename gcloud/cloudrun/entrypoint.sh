@@ -31,7 +31,7 @@ function expand_vars {
 
 function get {
   map=$1; key=$2
-  value="$(echo $map |sed -e "s/.*--${key} \([^ ]*\).*/\1/")"
+  value="$(echo $map |sed -e "s/.*--${key}=\([^ ]*\).*/\1/")"
   echo $value
 }
 
