@@ -6,17 +6,24 @@ inputs:
     required: true
   stage:
     description: 'stage'
-    required: true
     default: 'canary'
   region:
     description: 'region'
-    required: true
     default: 'eu'
   is_public:
     description: 'is_public'
     default: true
   flags:
     description: 'flags'
+  subscriptions:
+    description: 'subscriptions'
+    required: false
+  log_level:
+    description: 'log level'
+    default: 'info'
+  log_format:
+    description: 'log format'
+    default: 'json'
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -26,3 +33,6 @@ runs:
     - ${{ inputs.region }}
     - ${{ inputs.is_public }}
     - ${{ inputs.flags }}
+    - ${{ inputs.subscriptions }}
+    - ${{ inputs.log_level }}
+    - ${{ inputs.log_format }}
