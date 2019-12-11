@@ -79,9 +79,9 @@ function deploy {
     --project ${GCLOUD_PROJECT_ID} \
     --image ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias} \
     --region ${GCLOUD_REGION} \
-    --update-env-vars LOG_LEVEL ${log_level}
-    --update-env-vars LOG_FORMAT ${log_format}
-    --update-env-vars STAGE ${stage}
+    --update-env-vars LOG_LEVEL ${log_level} \
+    --update-env-vars LOG_FORMAT ${log_format} \
+    --update-env-vars STAGE ${stage} \
     ${flags}
 
   export CLOUDRUN_URL=$(gcloud beta run services describe ${alias} --format="value(status.address.hostname)")
