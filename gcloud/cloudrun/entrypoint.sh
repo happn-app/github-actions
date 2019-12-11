@@ -71,7 +71,6 @@ function build_tag_push_container {
 
 # Deploys function to Cloudrun
 function deploy {
-  echo ${log_level}
   # List environment variables
   flags=$(expand_vars <<< $flags)
   gcloud beta run deploy ${alias} \
@@ -148,6 +147,7 @@ if [ -n "${subscriptions}" ]; then
   count=0
   for item in $subscriptions
   do
-    add_subscription $item
+    entry=$(echo $item | xargs)
+    add_subscription $entry
   done
 fi
