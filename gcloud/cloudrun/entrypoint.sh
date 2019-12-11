@@ -84,7 +84,7 @@ function deploy {
     --update-env-vars STAGE=${stage} \
     ${flags}
 
-  export CLOUDRUN_URL=$(gcloud beta run services describe ${alias} --format="value(status.address.hostname)")
+  export CLOUDRUN_URL=$(gcloud beta run services describe ${alias} --region ${GCLOUD_REGION} --format="value(status.address.hostname)")
 }
 
 # Add IAM binding
