@@ -122,7 +122,7 @@ function add_subscription {
         --quiet \
         --expiration-period never \
         --push-endpoint ${endpoint} \
-        --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com \
+        --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
     elif [[ $needs_update == "yes" ]]; then
       gcloud beta pubsub subscriptions update ${name} \
         --topic ${topic} \
