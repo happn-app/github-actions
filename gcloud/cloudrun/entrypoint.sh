@@ -97,10 +97,13 @@ function add_iam_binding {
 }
 
 function add_subscription {
+    echo $1
     # Get variables
     name=$(get $1 "name")
     topic=$(get $1 "topic")
     endpoint=${CLOUDRUN_URL}$(get $1 "endpoint")
+
+    echo $name, $topic, $endpoint
 
     subscription=$(gcloud beta pubsub subscriptions list --filter "name = projects/${GCLOUD_PROJECT_ID}/subscriptions/${name}" 2> /dev/null)
     if [[ $subscription == *"projects/${GCLOUD_PROJECT_ID}/${name}"* ]]; then
