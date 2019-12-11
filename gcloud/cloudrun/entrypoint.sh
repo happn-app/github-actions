@@ -145,8 +145,7 @@ deploy
 
 if [ -n "${subscriptions}" ]; then
   add_iam_binding
-  IFS='
-  '
+  IFS=$'\n'
   count=0
   for item in $subscriptions
   do
