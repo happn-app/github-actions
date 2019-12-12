@@ -25,8 +25,6 @@ function expand_vars {
 # Configures Google Cloud SDK
 function setup {
   echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-  gcloud components install beta --quiet
-  gcloud components update --quiet
   gcloud config set project ${GCLOUD_PROJECT_ID}
   gcloud config set compute/region ${GCLOUD_REGION}
   gcloud config set run/platform managed
@@ -71,13 +69,13 @@ function deploy {
     --update-env-vars STAGE=${STAGE} \
     ${flags}
 
-  url=$(gcloud beta run services describe ${alias} --region ${GCLOUD_REGION} --format="value(status.address.hostname)")
+  url=$(gcloud run services describe ${alias} --region ${GCLOUD_REGION} --format="value(status.address.hostname)")
   echo ::set-output name=url::$url
 }
 
 # Add IAM binding
 function add_iam_binding {
-  gcloud beta run services add-iam-policy-binding ${alias} \
+  gcloud run services add-iam-policy-binding ${alias} \
     --quiet \
     --region ${GCLOUD_REGION} \
     --member serviceAccount:${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com \

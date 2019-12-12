@@ -10,8 +10,6 @@ push_endpoint=$4
 # Configures Google Cloud SDK
 function setup {
   echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-  gcloud components install beta --quiet
-  gcloud components update --quiet
   gcloud config set project ${GCLOUD_PROJECT_ID}
   gcloud config set compute/region ${GCLOUD_REGION}
 }
@@ -30,7 +28,7 @@ function inject_runtime_config {
 
 # Adds a subscription to pub/sub service
 function add_subscription {
-    subscription=$(gcloud beta pubsub subscriptions list --filter "name = projects/${GCLOUD_PROJECT_ID}/subscriptions/${name}" 2> /dev/null)
+    subscription=$(gcloud pubsub subscriptions list --filter "name = projects/${GCLOUD_PROJECT_ID}/subscriptions/${name}" 2> /dev/null)
     if [[ $subscription == *"projects/${GCLOUD_PROJECT_ID}/${name}"* ]]; then
       # Check if subscription needs update
       if [[ $subscription != *"${push_endpoint}"* ]]; then
@@ -44,14 +42,14 @@ function add_subscription {
       fi
     fi
     if [[ -z "$subscription" ]]; then
-      gcloud beta pubsub subscriptions create ${name} \
+      gcloud pubsub subscriptions create ${name} \
         --topic ${topic} \
         --quiet \
         --expiration-period never \
         --push-endpoint ${push_endpoint} \
         --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
     elif [[ $needs_update == "yes" ]]; then
-      gcloud beta pubsub subscriptions update ${name} \
+      gcloud pubsub subscriptions update ${name} \
         --topic ${topic} \
         --quiet \
         --expiration-period never \
