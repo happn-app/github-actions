@@ -1,4 +1,4 @@
-FROM google/cloud-sdk:alpine
+FROM google/cloud-sdk:latest
 
 RUN apk --no-cache add jq bash curl
 
