@@ -18,6 +18,9 @@ inputs:
   add_iam_binding:
     description: 'add iam binding'
     default: false
+outputs:
+  url:
+    description: 'The deployment url'
 runs:
   using: 'docker'
   image: 'Dockerfile'
