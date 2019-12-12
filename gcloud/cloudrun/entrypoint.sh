@@ -86,6 +86,7 @@ inject_runtime_config
 build_tag_push_container
 url=$(deploy)
 
+echo "url:", $url
 echo ::set-output name=url::$url
 
 case $add_iam_binding in
