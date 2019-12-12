@@ -72,7 +72,7 @@ function deploy {
 
 # Gets the URL of the Cloudrun service
 function get_url {
-  gcloud run services describe ${alias} --region ${GCLOUD_REGION} --format="value(status.address.hostname)"
+  gcloud run services describe ${alias} --region ${GCLOUD_REGION} --platform managed --format="get(domain)"
 }
 
 # Add IAM binding
