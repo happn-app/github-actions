@@ -68,7 +68,10 @@ function deploy {
     --update-env-vars LOG_FORMAT=${log_format} \
     --update-env-vars STAGE=${STAGE} \
     ${flags}
+}
 
+# Gets the URL of the Cloudrun service
+function get_url {
   gcloud run services describe ${alias} --region ${GCLOUD_REGION} --format="value(status.address.hostname)"
 }
 
@@ -84,9 +87,10 @@ function add_iam_binding {
 setup
 inject_runtime_config
 build_tag_push_container
-url=$(deploy)
+deploy
+url=$(get_url)
 
-echo "url:", $url
+echo "CloudRun url: $url"
 echo ::set-output name=url::$url
 
 case $add_iam_binding in
