@@ -58,7 +58,7 @@ function build_tag_push_container {
 function deploy {
   # List environment variables
   flags=$(expand_vars <<< $flags)
-  gcloud beta run deploy ${alias} \
+  gcloud run deploy ${alias} \
     --quiet \
     ${allow_unauthenticated} \
     --project ${GCLOUD_PROJECT_ID} \
@@ -69,8 +69,7 @@ function deploy {
     --update-env-vars STAGE=${STAGE} \
     ${flags}
 
-  url=$(gcloud run services describe ${alias} --region ${GCLOUD_REGION} --format="value(status.address.hostname)")
-  echo ::set-output name=url::$url
+  gcloud run services describe ${alias} --region ${GCLOUD_REGION} --format="value(status.address.hostname)"
 }
 
 # Add IAM binding
@@ -85,7 +84,9 @@ function add_iam_binding {
 setup
 inject_runtime_config
 build_tag_push_container
-deploy
+url=$(deploy)
+
+echo ::set-output name=url::$url
 
 case $add_iam_binding in
   (true) add_iam_binding;;
