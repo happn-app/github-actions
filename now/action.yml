@@ -18,6 +18,9 @@ inputs:
     description: 'forces a new build even if artefact did not change'
     required: false
     default: false
+  vars:
+    description: 'injects environment variables from context'
+    required: false
 outputs:
   url:
     description: 'The deployment url'
@@ -30,3 +33,4 @@ runs:
     - ${{ inputs.env }}
     - ${{ inputs.prod }}
     - ${{ inputs.force }}
+    - ${{ inputs.vars }}

@@ -1,6 +1,6 @@
-FROM alpine:3.10
+FROM google/cloud-sdk:latest
 
-RUN apk --no-cache add jq bash curl nodejs npm
+RUN apt-get update && apt-get install -y jq bash curl nodejs npm
 RUN npm config set unsafe-perm true
 RUN npm i -g now
 
