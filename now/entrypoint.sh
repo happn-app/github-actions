@@ -44,7 +44,7 @@ function inject_runtime_config {
 }
 
 function deploy {
-  $(expand_vars <<< $vars) > .env.production
+  expand_vars <<< $vars > .env.production
 
   mv now.json now-${name}.json
   jq --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias' now-$name.json > now.json
