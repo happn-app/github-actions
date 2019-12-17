@@ -60,5 +60,7 @@ function deploy {
 
 setup
 inject_runtime_config
-echo $vars | xargs > .env.production
+echo $vars
+expand_vars <<< $vars > .env.production
+cat .env.production
 deploy
