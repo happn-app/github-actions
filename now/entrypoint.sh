@@ -60,7 +60,7 @@ function deploy {
 
 setup
 inject_runtime_config
-echo $vars
-expand_vars <<< $vars > .env.production
+parsed=$(expand_vars <<< $vars)
+echo $parsed > .env.production
 cat .env.production
 deploy
