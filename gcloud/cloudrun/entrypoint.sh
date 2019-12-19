@@ -9,6 +9,11 @@ log_level=$4
 log_format=$5
 add_iam_binding=$6
 
+case $is_public in
+  (true)    allow_unauthenticated=--allow-unauthenticated;;
+  (false)   allow_unauthenticated=;;
+esac
+
 function expand_vars {
   local line lineEscaped
   while IFS= read -r line || [[ -n $line ]]; do  # the `||` clause ensures that the last line is read even if it doesn't end with \n
