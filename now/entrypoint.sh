@@ -27,7 +27,9 @@ function setup {
   echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
   gcloud config set project ${GCLOUD_PROJECT_ID}
   gcloud config set compute/region ${GCLOUD_REGION}
-  export GOOGLE_APPLICATION_CREDENTIALS=$GCLOUD_SERVICE_KEY
+
+  echo $GCLOUD_SERVICE_KEY | cat > /tmp/account.json
+  export GOOGLE_APPLICATION_CREDENTIALS=/tmp/account.json
 }
 
 # Export runtime config variables into current bash session
