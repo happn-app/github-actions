@@ -27,6 +27,7 @@ function setup {
   echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
   gcloud config set project ${GCLOUD_PROJECT_ID}
   gcloud config set compute/region ${GCLOUD_REGION}
+  export GOOGLE_APPLICATION_CREDENTIALS=$GCLOUD_SERVICE_KEY
 }
 
 # Export runtime config variables into current bash session
@@ -39,6 +40,23 @@ function inject_runtime_config {
       | jq -r '.[] | [(.name | split("/") | join("_") | split("-") | join("_") | ascii_upcase), .value] | join("=")' \
       | xargs
   )
+}
+
+# Writes environment file expanding variables not yet expanded such as Berglas vars
+function write_env_file {
+  cat /dev/null > .env.production
+  IFS=$'\n'
+  for item in $1
+  do
+    if [[ "$item" == *berglas* ]] ;
+    then
+      var=$(echo "$item" | sed 's/^\([A-Z0-9_]*\)=\(.*\)/\2/' | xargs)
+      var_expanded=$(berglas access $var)
+      echo "$item" | sed "s~${var}~$var_expanded~g" >> .env.production
+    else
+      echo "$item" >> .env.production
+    fi
+  done
 }
 
 function deploy {
@@ -61,5 +79,5 @@ function deploy {
 setup
 inject_runtime_config
 parsed=$(expand_vars <<< "${vars}")
-echo "$parsed" > .env.production
+write_env_file "$parsed"
 deploy
