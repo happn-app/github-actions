@@ -62,7 +62,7 @@ function write_env_file {
 }
 
 function deploy {
-  env=$(env -i bash -l -c 'export $(cat .env | xargs) && jq -n env')
+  env=$(env -i bash -l -c 'export $(cat .env.production | xargs) && jq -n env')
 
   mv now.json now-${name}.json
   jq --argjson env "$env" --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias | .build.env = $env' now-$name.json > now.json
