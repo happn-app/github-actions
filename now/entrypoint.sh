@@ -63,9 +63,10 @@ function write_env_file {
 
 function deploy {
   env=$(env -i bash -l -c 'export $(cat .env.production | xargs) && jq -n env')
+  env=$(echo $env | jq 'del(.PATH) | del(.PWD) | del(.SHLVL) | del(._)')
 
   mv now.json now-${name}.json
-  jq --argjson env "$env" --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias | .build.env = $env' now-$name.json > now.json
+  jq --argjson env $env --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias | .build.env = $env' now-$name.json > now.json
 
   case $force in
     (true)    force='--force';;
