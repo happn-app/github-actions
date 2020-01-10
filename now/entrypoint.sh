@@ -68,6 +68,9 @@ function deploy {
   mv now.json now-${name}.json
   jq --argjson env "$env" --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias | .build.env = $env' now-$name.json > now.json
 
+  # Cleanup
+  rm now-${name}.json .env.production
+
   case $force in
     (true)    force='--force';;
     (false)   force='';;
