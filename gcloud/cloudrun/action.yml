@@ -4,18 +4,30 @@ inputs:
   alias:
     description: 'alias'
     required: true
-  stage:
-    description: 'stage'
-    required: true
-    default: 'canary'
-  region:
-    description: 'region'
-    required: true
-    default: 'eu'
+  is_public:
+    description: 'is_public'
+    default: true
+  flags:
+    description: 'flags'
+  log_level:
+    description: 'log level'
+    default: 'info'
+  log_format:
+    description: 'log format'
+    default: 'json'
+  add_iam_binding:
+    description: 'add iam binding'
+    default: false
+outputs:
+  url:
+    description: 'The deployment url'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - ${{ inputs.alias }}
-    - ${{ inputs.stage }}
-    - ${{ inputs.region }}
+    - ${{ inputs.is_public }}
+    - ${{ inputs.flags }}
+    - ${{ inputs.log_level }}
+    - ${{ inputs.log_format }}
+    - ${{ inputs.add_iam_binding }}

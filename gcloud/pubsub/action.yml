@@ -1,0 +1,23 @@
+name: 'Google Cloud Pub/Sub Actions'
+description: 'GitHub Action for interacting with google cloud pub/sub actions'
+inputs:
+  name:
+    description: 'name'
+    required: true
+  topic:
+    description: 'topic'
+    required: true
+  expiration_period:
+    description: 'expiration period'
+    default: 'never'
+  push_endpoint:
+    description: 'push endpoint'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.name }}
+    - ${{ inputs.topic }}
+    - ${{ inputs.expiration_period }}
+    - ${{ inputs.push_endpoint }}
