@@ -40,42 +40,43 @@ function inject_runtime_config {
 
 # Adds a subscription to pub/sub service
 function add_subscription {
-    topic=$(expand_var $topic)
-    subscription=$(gcloud pubsub subscriptions list --filter "name = projects/${GCLOUD_PROJECT_ID}/subscriptions/${name}" 2> /dev/null)
-    if [[ $subscription == *"projects/${GCLOUD_PROJECT_ID}/${name}"* ]]; then
-      # Check if subscription needs update
-      if [[ $subscription != *"${push_endpoint}"* ]]; then
-        needs_update="yes"
-      fi
-      if [[ $subscription != *"${topic}"* ]]; then
-        needs_update="yes"
-      fi
-      if [[ $subscription != *"ackDeadlineSeconds: ${ack_deadline}"* ]]; then
-        needs_update="yes"
-      fi
-      if [[ $SUBSCRIPTION != *"${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}"* ]]; then
-        needs_update="yes"
-      fi
+  needs_update=no
+  topic=$(expand_var $topic)
+  subscription=$(gcloud pubsub subscriptions list --filter "name = projects/${GCLOUD_PROJECT_ID}/subscriptions/${name}" 2> /dev/null)
+  if [[ $subscription == *"projects/${GCLOUD_PROJECT_ID}/subscriptions/${name}"* ]]; then
+    # Check if subscription needs update
+    if [[ $subscription != *"${push_endpoint}"* ]]; then
+      needs_update="yes"
     fi
-    if [[ -z "$subscription" ]]; then
-      gcloud pubsub subscriptions create ${name} \
-        --topic ${topic} \
-        --quiet \
-        --ack-deadline ${ack_deadline} \
-        --expiration-period never \
-        --push-endpoint ${push_endpoint} \
-        --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
-    elif [[ $needs_update == "yes" ]]; then
-      gcloud pubsub subscriptions update ${name} \
-        --topic ${topic} \
-        --quiet \
-        --ack-deadline ${ack_deadline} \
-        --expiration-period never \
-        --push-endpoint ${push_endpoint} \
-        --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
-    else
-      echo 'No update to subscription required'
+    if [[ $subscription != *"${topic}"* ]]; then
+      needs_update="yes"
     fi
+    if [[ $subscription != *"ackDeadlineSeconds: ${ack_deadline}"* ]]; then
+      needs_update="yes"
+    fi
+    if [[ $SUBSCRIPTION != *"${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}"* ]]; then
+      needs_update="yes"
+    fi
+  fi
+  if [[ -z "$subscription" ]]; then
+    gcloud pubsub subscriptions create ${name} \
+      --topic ${topic} \
+      --quiet \
+      --ack-deadline ${ack_deadline} \
+      --expiration-period never \
+      --push-endpoint ${push_endpoint} \
+      --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
+  elif [[ $needs_update == "yes" ]]; then
+    gcloud pubsub subscriptions update ${name} \
+      --topic ${topic} \
+      --quiet \
+      --ack-deadline ${ack_deadline} \
+      --expiration-period never \
+      --push-endpoint ${push_endpoint} \
+      --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
+  else
+    echo 'No update to subscription required'
+  fi
 }
 
 setup
