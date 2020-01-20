@@ -10,6 +10,9 @@ inputs:
   expiration_period:
     description: 'expiration period'
     default: 'never'
+  ack_deadline:
+    description: 'ACK deadline'
+    default: 10
   push_endpoint:
     description: 'push endpoint'
     required: true
@@ -21,3 +24,4 @@ runs:
     - ${{ inputs.topic }}
     - ${{ inputs.expiration_period }}
     - ${{ inputs.push_endpoint }}
+    - ${{ inputs.ack_deadline }}

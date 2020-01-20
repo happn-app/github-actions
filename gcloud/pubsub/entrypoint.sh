@@ -6,6 +6,7 @@ name=$1
 topic=$2
 expiration_period=$3
 push_endpoint=$4
+ack_deadline=$5
 
 function expand_var {
   local var
@@ -49,6 +50,9 @@ function add_subscription {
       if [[ $subscription != *"${topic}"* ]]; then
         needs_update="yes"
       fi
+      if [[ $subscription != *"ackDeadlineSeconds: ${ack_deadline}"* ]]; then
+        needs_update="yes"
+      fi
       if [[ $SUBSCRIPTION != *"${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}"* ]]; then
         needs_update="yes"
       fi
@@ -57,6 +61,7 @@ function add_subscription {
       gcloud pubsub subscriptions create ${name} \
         --topic ${topic} \
         --quiet \
+        --ack-deadline ${ack_deadline} \
         --expiration-period never \
         --push-endpoint ${push_endpoint} \
         --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
@@ -64,6 +69,7 @@ function add_subscription {
       gcloud pubsub subscriptions update ${name} \
         --topic ${topic} \
         --quiet \
+        --ack-deadline ${ack_deadline} \
         --expiration-period never \
         --push-endpoint ${push_endpoint} \
         --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
