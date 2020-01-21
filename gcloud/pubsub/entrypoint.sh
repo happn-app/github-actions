@@ -48,13 +48,7 @@ function add_subscription {
     if [[ $subscription != *"${push_endpoint}"* ]]; then
       needs_update="yes"
     fi
-    if [[ $subscription != *"${topic}"* ]]; then
-      needs_update="yes"
-    fi
     if [[ $subscription != *"ackDeadlineSeconds: ${ack_deadline}"* ]]; then
-      needs_update="yes"
-    fi
-    if [[ $SUBSCRIPTION != *"${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}"* ]]; then
       needs_update="yes"
     fi
   fi
@@ -67,9 +61,7 @@ function add_subscription {
       --push-endpoint ${push_endpoint} \
       --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
   elif [[ $needs_update == "yes" ]]; then
-    set -x
     gcloud pubsub subscriptions update ${name} \
-      --topic ${topic} \
       --quiet \
       --ack-deadline ${ack_deadline} \
       --expiration-period never \
