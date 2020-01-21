@@ -4,7 +4,7 @@ set -e
 
 alias=$1
 is_public=$2
-env_vars=$3
+vars=$3
 log_level=$4
 log_format=$5
 add_iam_binding=$6
@@ -72,7 +72,7 @@ function build_tag_push_container {
 # Deploys function to Cloudrun
 function deploy {
   # List environment variables
-  env_vars=$(expand_vars <<< "$env_vars")
+  vars=$(expand_vars <<< "$vars")
   gcloud run deploy ${alias} \
     --quiet \
     ${async} \
@@ -86,8 +86,7 @@ function deploy {
     --region ${GCLOUD_REGION} \
     --update-env-vars LOG_LEVEL=${log_level} \
     --update-env-vars LOG_FORMAT=${log_format} \
-    --update-env-vars STAGE=${STAGE} \
-    ${env_vars}
+    --update-env-vars STAGE=${STAGE} ${vars}
 }
 
 # Gets the URL of the Cloudrun service

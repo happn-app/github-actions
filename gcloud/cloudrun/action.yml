@@ -10,8 +10,9 @@ inputs:
   is_public:
     description: 'whether to allow unauthenticated access to the service'
     default: true
-  env_vars:
+  vars:
     description: 'environment variables that will be injected into the container'
+    required: false
   log_level:
     description: 'log level'
     default: 'info'
@@ -42,7 +43,7 @@ runs:
   args:
     - ${{ inputs.alias }}
     - ${{ inputs.is_public }}
-    - ${{ inputs.env_vars }}
+    - ${{ inputs.vars }}
     - ${{ inputs.log_level }}
     - ${{ inputs.log_format }}
     - ${{ inputs.add_iam_binding }}
