@@ -26,13 +26,13 @@ inputs:
     default: 'default'
   memory:
     description: 'memory'
-    default: '256Mi'
+    default: 'default'
   concurrency:
     description: 'concurrency'
-    default: '0'
+    default: 'default'
   timeout:
     description: 'timeout (max 15m)'
-    default: '5m'
+    default: 'default'
 outputs:
   url:
     description: 'The deployment url'
