@@ -67,6 +67,7 @@ function add_subscription {
       --push-endpoint ${push_endpoint} \
       --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
   elif [[ $needs_update == "yes" ]]; then
+    set -x
     gcloud pubsub subscriptions update ${name} \
       --topic ${topic} \
       --quiet \
