@@ -16,7 +16,7 @@ function expand_var {
   var=${var//$'\4'{/\${}
   # Finally, escape embedded double quotes to preserve them.
   var=${var//\"/\\\"}
-  eval "printf '%s\n' \"$var\"" | tr '\1\2\3\4' '`([$'
+  eval "printf '%s' \"$var\"" | tr '\1\2\3\4' '`([$'
 }
 
 # Configures Google Cloud SDK
