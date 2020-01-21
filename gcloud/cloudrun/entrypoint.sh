@@ -71,6 +71,7 @@ function build_tag_push_container {
 
 # Deploys function to Cloudrun
 function deploy {
+  set -x
   # List environment variables
   env_vars=$(expand_vars <<< "$env_vars")
   gcloud run deploy ${alias} \
