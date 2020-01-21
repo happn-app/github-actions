@@ -32,7 +32,7 @@ inputs:
     default: 'default'
   timeout:
     description: 'timeout (max 15m)'
-    default: 'default'
+    default: '5m'
 outputs:
   url:
     description: 'The deployment url'
