@@ -11,8 +11,8 @@ add_iam_binding=$6
 max_instances=$7
 memory=$8
 concurrency=$9
-timeout=$10
-async=$11
+timeout=${10}
+async=${11}
 
 case $is_public in
   (true)    allow_unauthenticated=--allow-unauthenticated;;
@@ -71,7 +71,6 @@ function build_tag_push_container {
 
 # Deploys function to Cloudrun
 function deploy {
-  set -x
   # List environment variables
   env_vars=$(expand_vars <<< "$env_vars")
   gcloud run deploy ${alias} \
