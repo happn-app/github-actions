@@ -73,7 +73,6 @@ function build_tag_push_container {
 function deploy {
   # List environment variables
   env_vars=$(expand_vars <<< "$env_vars")
-  set -x
   gcloud run deploy ${alias} \
     --quiet \
     ${async} \
