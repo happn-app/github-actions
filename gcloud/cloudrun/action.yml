@@ -4,11 +4,14 @@ inputs:
   alias:
     description: 'alias'
     required: true
+  async:
+    description: 'return immediately, without waiting for the operation in progress to complete'
+    default: false
   is_public:
-    description: 'is_public'
+    description: 'whether to allow unauthenticated access to the service'
     default: true
-  flags:
-    description: 'flags'
+  env_vars:
+    description: 'environment variables that will be injected into the container'
   log_level:
     description: 'log level'
     default: 'info'
@@ -16,8 +19,20 @@ inputs:
     description: 'log format'
     default: 'json'
   add_iam_binding:
-    description: 'add iam binding'
+    description: 'whether to add iam binding or not'
     default: false
+  max_instances:
+    description: 'max instances'
+    default: 'default'
+  memory:
+    description: 'memory'
+    default: '256Mi'
+  concurrency:
+    description: 'concurrency'
+    default: '0'
+  timeout:
+    description: 'timeout (max 15m)'
+    default: '5m'
 outputs:
   url:
     description: 'The deployment url'
@@ -27,7 +42,12 @@ runs:
   args:
     - ${{ inputs.alias }}
     - ${{ inputs.is_public }}
-    - ${{ inputs.flags }}
+    - ${{ inputs.env_vars }}
     - ${{ inputs.log_level }}
     - ${{ inputs.log_format }}
     - ${{ inputs.add_iam_binding }}
+    - ${{ inputs.max_instances }}
+    - ${{ inputs.memory }}
+    - ${{ inputs.concurrency }}
+    - ${{ inputs.timeout }}
+    - ${{ inputs.async }}
