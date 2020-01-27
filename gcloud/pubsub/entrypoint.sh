@@ -66,7 +66,7 @@ function add_subscription {
       --ack-deadline ${ack_deadline} \
       --expiration-period never \
       --push-endpoint ${push_endpoint} \
-      --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
+      --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
   else
     echo 'No update to subscription required'
   fi
