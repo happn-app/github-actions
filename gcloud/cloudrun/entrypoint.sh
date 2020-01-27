@@ -13,6 +13,7 @@ memory=$8
 concurrency=$9
 timeout=${10}
 async=${11}
+use_runtime_config=${12}
 
 case $is_public in
   (true)    allow_unauthenticated=--allow-unauthenticated;;
@@ -24,14 +25,12 @@ case $async in
   (false)   async=;;
 esac
 
+# Expand variables
 function expand_vars {
   local line lineEscaped
-  while IFS= read -r line || [[ -n $line ]]; do  # the `||` clause ensures that the last line is read even if it doesn't end with \n
-    # Escape ALL chars. that could trigger an expansion..
+  while IFS= read -r line || [[ -n $line ]]; do
     IFS= read -r -d '' lineEscaped < <(printf %s "--update-env-vars $line" | tr '`([$' '\1\2\3\4')
-    # ... then selectively reenable ${ references
     lineEscaped=${lineEscaped//$'\4'{/\${}
-    # Finally, escape embedded double quotes to preserve them.
     lineEscaped=${lineEscaped//\"/\\\"}
     eval "printf '%s\n' \"$lineEscaped\"" | tr '\1\2\3\4' '`([$'
   done
@@ -104,7 +103,11 @@ function add_iam_binding {
 }
 
 setup
-inject_runtime_config
+
+case $use_runtime_config in
+  (true) inject_runtime_config;;
+esac
+
 build_tag_push_container
 deploy
 url=$(get_url)
