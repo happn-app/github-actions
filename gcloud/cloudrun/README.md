@@ -56,7 +56,7 @@ jobs:
 
 ## Passing environment variables from runtime configurator
 
-We believe that passing environment variables in each repository was a tedious task, and we believe that keeping the code `DRY` is very important.
+We believe that passing environment variables in each repository is a tedious task, we also believe that keeping the code `DRY` is very important.
 
 We manage runtime variables with `Terraform` like the below:
 
