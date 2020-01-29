@@ -2,20 +2,24 @@ name: 'Google Cloud Pub/Sub Actions'
 description: 'GitHub Action for interacting with google cloud pub/sub actions'
 inputs:
   name:
-    description: 'name'
+    description: 'Name of subscription'
     required: true
   topic:
-    description: 'topic'
+    description: 'ID of the topic or fully qualified identifier for the topic'
     required: true
   expiration_period:
-    description: 'expiration period'
+    description: 'The subscription will expire if it is inactive for the given period'
     default: 'never'
   ack_deadline:
-    description: 'ACK deadline'
+    description: 'The number of seconds the system will wait for a subscriber to
+    acknowledge receiving a message before re-attempting delivery'
     default: 10
   push_endpoint:
-    description: 'push endpoint'
+    description: 'Push endpoint'
     required: true
+  use_runtime_config:
+    description: 'whether to inject runtime config variables as environment variables into the container'
+    default: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -25,3 +29,4 @@ runs:
     - ${{ inputs.expiration_period }}
     - ${{ inputs.push_endpoint }}
     - ${{ inputs.ack_deadline }}
+    - ${{ inputs.use_runtime_config }}

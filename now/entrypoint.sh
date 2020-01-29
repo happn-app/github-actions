@@ -4,10 +4,10 @@ set -e
 
 alias=$1
 name=$2
-env=$3
-prod=$4
-force=$5
-vars=$6
+prod=$3
+force=$4
+vars=$5
+use_runtime_config=$6
 
 function expand_vars {
   local line lineEscaped
@@ -85,7 +85,9 @@ function deploy {
 }
 
 setup
-inject_runtime_config
+case $use_runtime_config in
+  (true) inject_runtime_config;;
+esac
 parsed=$(expand_vars <<< "${vars}")
 write_env_file "$parsed"
 deploy

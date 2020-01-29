@@ -2,25 +2,25 @@ name: 'Zeit Now'
 description: 'GitHub Action for making deployments with Zeit Now'
 inputs:
   alias:
-    description: 'alias'
+    description: 'Domain name'
     required: true
   name:
-    description: 'name'
+    description: 'String name for the deployment'
     required: true
-  env:
-    description: 'env file'
-    required: false
   prod:
-    description: 'prod'
+    description: 'Is it a production deployment?'
     required: false
     default: false
   force:
-    description: 'forces a new build even if artefact did not change'
+    description: 'Forces a new build even if artefact did not change'
     required: false
     default: false
   vars:
-    description: 'injects environment variables from context'
+    description: 'Injects environment variables'
     required: false
+  use_runtime_config:
+    description: 'whether to inject runtime config variables as environment variables during the build process'
+    default: true
 outputs:
   url:
     description: 'The deployment url'
@@ -30,7 +30,7 @@ runs:
   args:
     - ${{ inputs.alias }}
     - ${{ inputs.name }}
-    - ${{ inputs.env }}
     - ${{ inputs.prod }}
     - ${{ inputs.force }}
     - ${{ inputs.vars }}
+    - ${{ inputs.use_runtime_config }}

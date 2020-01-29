@@ -7,14 +7,12 @@ topic=$2
 expiration_period=$3
 push_endpoint=$4
 ack_deadline=$5
+inject_runtime_config=$6
 
 function expand_var {
   local var
-  # Escape ALL chars. that could trigger an expansion..
   IFS= read -r -d '' var < <(printf %s "$1" | tr '`([$' '\1\2\3\4')
-  # ... then selectively reenable ${ references
   var=${var//$'\4'{/\${}
-  # Finally, escape embedded double quotes to preserve them.
   var=${var//\"/\\\"}
   eval "printf '%s' \"$var\"" | tr '\1\2\3\4' '`([$'
 }
@@ -73,5 +71,7 @@ function add_subscription {
 }
 
 setup
-inject_runtime_config
+case $use_runtime_config in
+  (true) inject_runtime_config;;
+esac
 add_subscription
