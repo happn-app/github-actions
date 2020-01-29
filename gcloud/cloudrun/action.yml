@@ -25,7 +25,7 @@ inputs:
     default: false
   max_instances:
     description: 'maximum number of container instances of the service to run or
-    'default' to remove any maximum'
+    ''default'' to remove any maximum'
     default: 'default'
   memory:
     description: 'sets a memory limit. Ex: 1Gi, 512Mi'
