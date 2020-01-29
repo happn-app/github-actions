@@ -38,8 +38,8 @@ inputs:
     default: 'default'
   timeout:
     description: 'sets the maximum request execution time (timeout). It is specified as a
-    duration; for example, "10m5s" is ten minutes, and five seconds. If you
-    don't specify a unit, seconds is assumed. For example, "10" is 10
+    duration; for example, ''10m5s'' is ten minutes, and five seconds. If you
+    don''t specify a unit, seconds is assumed. For example, ''10'' is 10
     seconds.'
     default: '5m'
   use_runtime_config:
