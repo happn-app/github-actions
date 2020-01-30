@@ -1,0 +1,4 @@
+## 1.9.4 (January 30, 2020)
+
+BUG FIXES:
+* gcloud/cloudrun: Escape quoted words
