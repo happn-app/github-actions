@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
 
 alias=$1
 name=$2
