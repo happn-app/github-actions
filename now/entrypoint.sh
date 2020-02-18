@@ -63,14 +63,16 @@ function write_env_file {
 }
 
 function deploy {
-  env=$(env -i bash -l -c 'export $(cat .env.production | xargs) && jq -n env')
-  env=$(echo $env | jq 'del(.PATH) | del(.PWD) | del(.SHLVL) | del(._)')
-
   mv now.json now-${name}.json
-  jq --argjson env "$env" --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias | .build.env = $env' now-$name.json > now.json
+  if [[ ! -z "${vars}" ]]; then
+    env=$(env -i bash -l -c 'export $(cat .env.production | xargs) && jq -n env')
+    env=$(echo $env | jq 'del(.PATH) | del(.PWD) | del(.SHLVL) | del(._)')
 
-  # Cleanup
-  rm now-${name}.json .env.production
+    jq --argjson env "$env" --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias | .build.env = $env' now-$name.json > now.json
+    rm now-${name}.json .env.production
+  else
+    jq --arg alias "$alias" --arg name "$name" '.name = $name | .alias = $alias' now-$name.json > now.json
+  fi
 
   case $force in
     (true)    force='--force';;
@@ -86,9 +88,13 @@ function deploy {
 }
 
 setup
-case $use_runtime_config in
-  (true) inject_runtime_config;;
-esac
-parsed=$(expand_vars <<< "${vars}")
-write_env_file "$parsed"
+if [[ ! -z "${vars}" ]]; then
+  case $use_runtime_config in
+    (true) inject_runtime_config;;
+  esac
+fi
+if [[ ! -z "${vars}" ]]; then
+  parsed=$(expand_vars <<< "${vars}")
+  write_env_file "$parsed"
+fi
 deploy
