@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -x
 
 alias=$1
 is_public=$2
