@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
 
 alias=$1
 is_public=$2
@@ -18,7 +17,7 @@ use_runtime_config=${12}
 
 case $is_public in
   (true)    allow_unauthenticated=--allow-unauthenticated;;
-  (false)   allow_unauthenticated=;;
+  (false)   allow_unauthenticated=--no-allow-unauthenticated;;
 esac
 
 case $async in
