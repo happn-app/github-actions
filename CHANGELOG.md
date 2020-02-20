@@ -1,3 +1,11 @@
+## 1.10.0 (February 20, 2020)
+
+FEATURES:
+* now: Switch to latest now version
+
+BUG FIXES:
+* gcloud/cloudrun: Use no-allow-authenticated flag for internal services 
+
 ## 1.9.5 (February 10, 2020)
 
 BUG FIXES:
