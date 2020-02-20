@@ -79,8 +79,8 @@ function deploy {
   esac
 
   case $prod in
-    (true)    url=$(now -t $ZEIT_TOKEN $force); now alias;;
-    (false)   url=$(now -t $ZEIT_TOKEN $force);;
+    (true)    url=$(now --confirm -t $ZEIT_TOKEN --prod $force);;
+    (false)   url=$(now --confirm -t $ZEIT_TOKEN $force);;
   esac
 
   echo ::set-output name=url::$url

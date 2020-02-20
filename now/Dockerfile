@@ -12,7 +12,7 @@ RUN DISTRO="$(lsb_release -s -c)" ; \
     apt-get install -y nodejs
 
 RUN npm config set unsafe-perm true
-RUN npm i -g npm now@16.7.3
+RUN npm i -g npm now
 RUN curl -L https://storage.googleapis.com/berglas/master/linux_amd64/berglas -o /usr/local/bin/berglas
 RUN chmod +x /usr/local/bin/berglas
 
