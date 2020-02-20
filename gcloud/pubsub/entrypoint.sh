@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -x
 
 name=$1
 topic=$2
