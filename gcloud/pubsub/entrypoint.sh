@@ -8,7 +8,7 @@ topic=$2
 expiration_period=$3
 push_endpoint=$4
 ack_deadline=$5
-inject_runtime_config=$6
+use_runtime_config=$6
 
 function expand_var {
   local var
@@ -39,7 +39,6 @@ function inject_runtime_config {
 
 # Adds a subscription to pub/sub service
 function add_subscription {
-  env
   needs_update=no
   topic=$(expand_var $topic)
   subscription=$(gcloud pubsub subscriptions list --filter "name = projects/${GCLOUD_PROJECT_ID}/subscriptions/${name}" 2> /dev/null)
@@ -67,7 +66,6 @@ function add_subscription {
       --expiration-period never \
       --push-endpoint ${push_endpoint} \
       --push-auth-service-account ${GCLOUD_PUBSUB_INVOKER_CLOUDRUN_SA_NAME}@${GCLOUD_PROJECT_ID}.iam.gserviceaccount.com
-      
   else
     echo 'No update to subscription required'
   fi
