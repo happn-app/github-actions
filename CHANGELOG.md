@@ -1,3 +1,8 @@
+## 1.11.0 (March 13, 2020)
+
+FEATURES:
+* gcloud/cloudrun: Expose the service alias to the container
+
 ## 1.10.0 (February 20, 2020)
 
 FEATURES:
