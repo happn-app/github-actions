@@ -112,7 +112,15 @@ case $use_runtime_config in
 esac
 
 build_tag_push_container
-deploy
+
+# Retry 5 times max every 15 seconds if CloudRun service fails to deploy
+n=0
+until [ $n -ge 5 ]
+do
+   deploy && break
+   n=$[$n+1]
+   sleep 15
+done
 url=$(get_url)
 
 echo "CloudRun url: $url"
