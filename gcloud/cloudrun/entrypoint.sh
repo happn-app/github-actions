@@ -74,7 +74,6 @@ function deploy {
   if [[ ! -z "${vars}" ]]; then
     vars=$(expand_vars <<< "$vars")
   fi
-  timeout --kill-after=180 180 \
   gcloud run deploy ${alias} \
     --quiet \
     ${async} \
