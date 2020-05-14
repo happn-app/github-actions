@@ -1,5 +1,5 @@
-FROM google/cloud-sdk:latest
-RUN apt-get update && apt-get install -y jq curl
+FROM google/cloud-sdk:alpine
+RUN apk --no-cache add jq curl
 
 COPY "entrypoint.sh" "/entrypoint.sh"
 ENTRYPOINT ["/entrypoint.sh"]
