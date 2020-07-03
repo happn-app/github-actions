@@ -87,6 +87,7 @@ function deploy {
     --project ${GCLOUD_PROJECT_ID} \
     --image ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias} \
     --region ${GCLOUD_REGION} \
+    --labels service=${alias} \
     --update-env-vars ALIAS=${alias} \
     --update-env-vars LOG_LEVEL=${log_level} \
     --update-env-vars LOG_FORMAT=${log_format} \
