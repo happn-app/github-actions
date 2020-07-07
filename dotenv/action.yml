@@ -1,8 +1,6 @@
-name: "Wrangler"
-description: "GitHub Action for making deployments with Wrangler"
+name: "Dotenv"
+description: "GitHub Action for generating dotenv files"
 inputs:
-  apiToken:
-    description: "Your Cloudflare API Token"
   vars:
     description: "Injects environment variables"
     required: false
@@ -13,6 +11,5 @@ runs:
   using: "docker"
   image: "Dockerfile"
   args:
-    - ${{ inputs.apiToken }}
     - ${{ inputs.vars }}
     - ${{ inputs.use_runtime_config }}

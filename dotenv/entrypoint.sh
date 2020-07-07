@@ -2,11 +2,8 @@
 
 set -e
 
-api_token=$1
-vars=$2
-use_runtime_config=$3
-
-export CF_API_TOKEN="$api_token"
+vars=$1
+use_runtime_config=$2
 
 function expand_vars {
   local line lineEscaped
@@ -60,10 +57,6 @@ function write_env_file {
   done
 }
 
-function deploy {
-  wrangler publish --env ${STAGE}
-}
-
 setup
 if [[ ! -z "${vars}" ]]; then
   case $use_runtime_config in
@@ -74,4 +67,3 @@ if [[ ! -z "${vars}" ]]; then
   parsed=$(expand_vars <<< "${vars}")
   write_env_file "$parsed"
 fi
-deploy
