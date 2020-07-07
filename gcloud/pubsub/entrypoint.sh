@@ -28,6 +28,7 @@ function setup {
 function inject_runtime_config {
   export $(
     gcloud beta runtime-config configs variables list \
+      --quiet \
       --values \
       --config-name ${STAGE}-${REGION} \
       --format='json' \

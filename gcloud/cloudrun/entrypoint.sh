@@ -49,6 +49,7 @@ function setup {
 function inject_runtime_config {
   export $(
     gcloud beta runtime-config configs variables list \
+      --quiet \
       --values \
       --config-name ${STAGE}-${REGION} \
       --format='json' \
@@ -86,6 +87,7 @@ function deploy {
     --project ${GCLOUD_PROJECT_ID} \
     --image ${GCLOUD_CONTAINER_REGISTRY}/${GCLOUD_PROJECT_ID}/${alias} \
     --region ${GCLOUD_REGION} \
+    --update-labels service=${alias} \
     --update-env-vars ALIAS=${alias} \
     --update-env-vars LOG_LEVEL=${log_level} \
     --update-env-vars LOG_FORMAT=${log_format} \
