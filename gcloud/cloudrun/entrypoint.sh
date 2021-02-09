@@ -78,7 +78,7 @@ function deploy {
   fi
   # Check if we need a specific service account
   if [[ ! -z "${service_account}" ]]; then
-    service_account="--service-account=$(service_account)"
+    service_account="--service-account=${service_account}"
   fi
   timeout 200 \
   gcloud run deploy ${alias} \
