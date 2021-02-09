@@ -44,7 +44,11 @@ inputs:
     default: '5m'
   use_runtime_config:
     description: 'whether to inject runtime config variables as environment variables into the container'
-    default: true
+    default: false
+  service_account:
+    description: 'identity of the running revision, and determines what permissions the revision has.
+    You need to pass the email address of a specific IAM service account'
+    required: false
 outputs:
   url:
     description: 'The deployment url'
@@ -64,3 +68,4 @@ runs:
     - ${{ inputs.timeout }}
     - ${{ inputs.async }}
     - ${{ inputs.use_runtime_config }}
+    - ${{ inputs.service_account }}

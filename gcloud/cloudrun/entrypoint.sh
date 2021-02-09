@@ -14,6 +14,7 @@ concurrency=$9
 timeout=${10}
 async=${11}
 use_runtime_config=${12}
+service_account=${13}
 
 case $is_public in
   (true)    allow_unauthenticated=--allow-unauthenticated;;
@@ -75,11 +76,16 @@ function deploy {
   if [[ ! -z "${vars}" ]]; then
     vars=$(expand_vars <<< "$vars")
   fi
+  # Check if we need a specific service account
+  if [[ ! -z "${service_account}" ]]; then
+    service_account="--service-account=$(service_account)"
+  fi
   timeout 200 \
   gcloud run deploy ${alias} \
     --quiet \
     ${async} \
     ${allow_unauthenticated} \
+    ${service_account} \
     --max-instances ${max_instances} \
     --memory ${memory} \
     --concurrency ${concurrency} \
