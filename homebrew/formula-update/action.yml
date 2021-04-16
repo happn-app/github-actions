@@ -1,0 +1,34 @@
+name: homebrew-release
+description: 'GitHub action to update Homebrew formulae on release.'
+author: 'happn-tech'
+runs:
+  using: node12
+  main: 'dist/index.js'
+inputs:
+  commit_message:
+    required: true
+    description: "Template of the commit message. Available variables for Handlebars: `{{tag}}` / `{{version}}`,  `{{formula}}` / `{{formula_file}}`"
+    default: |
+      🔖 {{ formula_file }}: Bump to {{ tag }}
+  formula_tag:
+    required: false
+    description: "The name of the tag. Default: `$GITHUB_REF`"
+  formula_template:
+    required: true
+    description: "Template of the Homebrew formulae: Available variables for Handlebars: `{{tag}}` / `{{version}}`,  `{{formula}}` / `{{formula_file}}`, `{{ revision }}`"
+  tap_formula_path:
+    required: true
+    description: "Path to the formula in the tap repository. Example: `Formula/hello-app.rb`"
+  tap_owner:
+    required: true
+    description: "Name of an organization to which tap repository belongs"
+  tap_repository:
+    required: true
+    description: "Name of handle of the tap repository"
+  tap_branch:
+    required: true
+    default: master
+    description: "Name of a branch (without the refs/... prefix), where the update formula should be committed"
+branding:
+  icon: box
+  color: blue
