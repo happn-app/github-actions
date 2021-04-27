@@ -72,11 +72,12 @@ Parameters
 | ---- | ---- | --------- | ----------- |
 | `commit_message` | String | Mandatory | Handlebars template definition of the commit message. All available variables are listed below.  |
 | `formula_tag` | String | Optional | The name of the tag. Default: `$GITHUB_REF`. | 
-| `formula_template` | String | Mandatory | Template of the Homebrew formulae: Available variables for Handlebars: |
-| `tap_formula_path` | String | Mandatory | Path to the formula in the tap repository. Example: `Formula/hello-app.rb` |
+| `formula_template` | String | Mandatory (exclusive with `formula_template_file`) | Template of the Homebrew formulae. |
+| `formula_template_file` | String | Mandatory  (exclusive with `formula_template`) | Path to the template file with Homebrew formulae. |
+| `tap_formula_path` | String | Mandatory | Path to the formula in the tap repository. Example: `Formula/hello-app.rb`. |
 | `tap_owner` | String | Mandatory | Name of the organization to which tap repository belongs. |
 | `tap_repository` | String | Mandatory | Name of handle of tap repository |
-| `tap_branch` | String | Mandatory | Name of a branch (without the refs/... prefix), where the update formula should be committed |
+| `tap_branch` | String | Mandatory | Name of a branch (without the refs/... prefix), where the update formula should be committed. |
 
 ### Available variables in commit message template
 
@@ -96,7 +97,6 @@ Action has dozens of known limitations:
 - This action MUST be used only in release pipelines - workflows triggered when tag has been created. 
 - It is limited to update only one recipe at the same time.
 - It does not check if there is already a newer version of formula pushed, which might lead to override formula with an older version.
-- It cannot load a file from file system (i.e. provided in git repository).
 - It relies on templating not generating the contents of Homebrew formula, which does not provide a handy interface to generate formulas with bottled/precompiled binaries. However, it could be leveraged by interpolating output from previous step or from provided environment variable.
 - Currently, you cannot configure an author of the commit, it inherits the committer from token creator.
 
