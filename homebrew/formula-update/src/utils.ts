@@ -4,7 +4,7 @@ import { basename } from 'path'
 
 /**
  * extractTag is an util function to extract a tag name from the ref that
- * could be provided in `refs/tags/1.0.0` form (`$GITHUB_REF`), instead
+ * could be provided in `refs/tags/1.0.0` from (`$GITHUB_REF`), instead
  * of preferred 1.0.0.
  *
  * @param ref a tag (in long or short form)
