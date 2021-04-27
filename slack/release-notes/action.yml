@@ -1,0 +1,36 @@
+name: 'Slack Release Notes Action'
+description: 'Publishes a release notes as a message on Slack'
+branding:
+  icon: message-circle
+  color: blue
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+inputs:
+  channel:
+    description: 'Name of a slack channel (ex: general) or a channel identifier when sending in thread.'
+    required: true
+
+  thread_ts:
+    description: 'Timestamp of message used as a reference to reply in thread.'
+    required: false
+
+  repository_name:
+    description: 'A replacement name for the repository instead of slug (ex: Web App)'
+    required: false
+
+  release_body:
+    description: 'A content of release body. It could be a changelog for an example'
+    required: false
+
+  username:
+    description: 'Customize the name of the bot - sender of a message. Remember to authorize chat:write.customize scope.'
+    required: false
+
+  icon_emoji:
+    description: 'Customize an avatar by using an emoji. Remember to authorize chat:write.customize scope.'
+    required: false
+
+  icon_url:
+    description: 'Customize bot avatar by providing avatar URL. Remember to authorize chat:write.customize scope.'
+    required: false
