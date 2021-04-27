@@ -81,12 +81,12 @@ Parameters
 ### Available variables in commit message template
 
 - `{{tag}}` / `{{version}}` - Name of the tag. Example: `1.2.0`.
-- `{{formula}}` / `{{formula_file}}` - File name extracted from `tap_formula_path`. Example: `hello-app`.
+- `{{formula}}` - File name extracted from `tap_formula_path`. Example: `hello-app`.
 
 ### Available variables in formula template 
 
 - `{{tag}}` / `{{version}}` - Name of the tag. Example: `1.2.0`.
-- `{{formula}}` / `{{formula_file}}` - File name extracted from `tap_formula_path`. Example: `hello-app`.
+- `{{formula}}` - File name extracted from `tap_formula_path`. Example: `hello-app`.
 - `{{revision}}` - A revision SHA hash. Example: `ffac537e6cbbf934b08745a378932722df287a53`.
 
 ## Limitations

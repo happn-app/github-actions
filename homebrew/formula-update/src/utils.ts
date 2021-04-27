@@ -39,11 +39,11 @@ export async function getTagCommitRevision(ctx: Context, api: API, tagName: stri
 }
 
 /**
- * extractRecipeName attempts to guess the recipe name from the provided
+ * extractFormulaName attempts to guess the recipe name from the provided
  * file path to the formula.
  *
  * @param filePath
  */
-export function extractRecipeName(filePath: string): string {
+export function extractFormulaName(filePath: string): string {
   return basename(filePath, '.rb')
 }

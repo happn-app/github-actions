@@ -1,6 +1,6 @@
 import { getInput } from '@actions/core'
 import type { Context } from '@actions/github/lib/context'
-import { extractRecipeName, extractTag, getTagCommitRevision } from './utils'
+import { extractFormulaName, extractTag, getTagCommitRevision } from './utils'
 import type { API } from './api'
 
 export const CommitMessage = 'commit_message'
@@ -28,13 +28,13 @@ export async function parseInputs(ctx: Context, apiSelf: API) {
   const tag = extractTag(getInput(FormulaTag) || process.env.GITHUB_REF as string)
   const revision = await getTagCommitRevision(ctx, apiSelf, tag)
 
-  const formulaFile = extractRecipeName(filePath)
+  const formulaName = extractFormulaName(filePath)
 
   return {
     branch,
     commitMessageTemplate,
     filePath,
-    formulaFile,
+    formulaName,
     formulaTemplate,
     owner,
     repo,

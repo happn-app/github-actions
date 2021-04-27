@@ -5,7 +5,7 @@ import { compile } from 'handlebars'
  * could be used during rendering contents of formula.
  */
 type FormulaParams = {
-  formulaFile: string
+  formula: string
   revision: string
   tag: string
 }
@@ -22,7 +22,6 @@ async function renderFormula(template: string, params: FormulaParams): Promise<s
     ...params,
 
     // aliases
-    formula: params.formulaFile,
     version: params.tag,
   })
 }
