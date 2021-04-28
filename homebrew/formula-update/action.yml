@@ -7,15 +7,18 @@ runs:
 inputs:
   commit_message:
     required: true
-    description: "Template of the commit message. Available variables for Handlebars: `{{tag}}` / `{{version}}`,  `{{formula}}` / `{{formula_file}}`"
+    description: "Template of the commit message. Available variables for Handlebars: `{{tag}}` / `{{version}}`,  `{{formula}}`"
     default: |
-      🔖 {{ formula_file }}: Bump to {{ tag }}
+      🔖 {{ formula }}: Bump to {{ tag }}
   formula_tag:
     required: false
     description: "The name of the tag. Default: `$GITHUB_REF`"
   formula_template:
-    required: true
-    description: "Template of the Homebrew formulae: Available variables for Handlebars: `{{tag}}` / `{{version}}`,  `{{formula}}` / `{{formula_file}}`, `{{ revision }}`"
+    required: false
+    description: "Template of the Homebrew formulae: Available variables for Handlebars: `{{tag}}` / `{{version}}`,  `{{formula}}`, `{{ revision }}`"
+  formula_template_file:
+    required: false
+    description: "Path to the template file with Homebrew formulae. Available variables for Handlebars: `{{tag}}` / `{{version}}`,  `{{formula}}`, `{{ revision }}`"
   tap_formula_path:
     required: true
     description: "Path to the formula in the tap repository. Example: `Formula/hello-app.rb`"

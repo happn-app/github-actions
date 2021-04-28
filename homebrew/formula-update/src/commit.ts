@@ -2,7 +2,7 @@ import { API } from './api'
 import { compile } from 'handlebars'
 
 export type CommitMessageParams = {
-  formulaFile: string
+  formula: string
   tag: string
 }
 
@@ -20,7 +20,6 @@ export function renderCommitMessage(template: string, params: CommitMessageParam
     ...params,
 
     // aliases
-    formula: params.formulaFile,
     version: params.tag,
   })
 }

@@ -14,7 +14,7 @@ async function run(api: (token: string) => API): Promise<void> {
     branch,
     commitMessageTemplate,
     filePath,
-    formulaFile,
+    formulaName,
     formulaTemplate,
     owner,
     repo,
@@ -23,13 +23,13 @@ async function run(api: (token: string) => API): Promise<void> {
   } = await parseInputs(context, apiSelf)
 
   const formula = await renderFormula(formulaTemplate, {
-    formulaFile,
+    formula: formulaName,
     revision,
     tag,
   })
 
   const commitMessage = renderCommitMessage(commitMessageTemplate, {
-    formulaFile,
+    formula: formulaName,
     tag,
   })
 
