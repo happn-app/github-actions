@@ -1,0 +1,40 @@
+name: 'Slack Release Status Action'
+description: 'Publishes a message on Slack informing about the status of the workflow'
+branding:
+  icon: message-circle
+  color: blue
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+inputs:
+  channel:
+    description: 'Name of a slack channel (ex: general) or a channel identifier when sending in thread.'
+    required: true
+
+  thread_ts:
+    description: 'Timestamp of message used as a reference to reply in thread.'
+    required: false
+
+  message:
+    description: 'A text of a message that is going to be published.'
+    required: false
+
+  reaction_add:
+    description: 'Name of emoji (without semicolons) that will be added from a message (thread_ts argument must be provided).'
+    required: false
+
+  reaction_remove:
+    description: 'Name of emoji (without semicolons) that will be removed from a message (thread_ts argument must be provided).'
+    required: false
+
+  username:
+    description: 'Customize the name of the bot - sender of a message. Remember to authorize `chat:write.customize scope`.'
+    required: false
+
+  icon_emoji:
+    description: 'Customize an avatar by using an emoji. Remember to authorize `chat:write.customize scope`.'
+    required: false
+
+  icon_url:
+    description: 'Customize bot avatar by providing an URL to image. Remember to authorize `chat:write.customize scope`.'
+    required: false
