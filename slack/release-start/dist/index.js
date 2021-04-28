@@ -14056,7 +14056,6 @@ __nccwpck_require__.r(__webpack_exports__);
 const slack = new _slack_web_api__WEBPACK_IMPORTED_MODULE_2__.WebClient(process.env.SLACK_TOKEN);
 const Channel = 'channel';
 const ReactionAdd = 'reaction_add';
-const RepositoryName = 'repository_name';
 const Message = 'message';
 const Username = 'username';
 const IconEmoji = 'icon_emoji';
@@ -14073,7 +14072,6 @@ function extractTag(ref) {
 async function run(ctx) {
     const channel = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Channel);
     const addReaction = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(ReactionAdd);
-    const repositoryName = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(RepositoryName);
     const message = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Message);
     const username = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Username);
     const iconEmoji = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconEmoji);
@@ -14116,7 +14114,7 @@ async function run(ctx) {
                     },
                     {
                         type: 'mrkdwn',
-                        text: `<${repositoryURL}|${repositoryName || repo}>`,
+                        text: `<${repositoryURL}|${repo}>`,
                     },
                 ],
             },
