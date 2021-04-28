@@ -17,7 +17,7 @@ inputs:
 
   message:
     description: 'A text of a message that is going to be published.'
-    required: true
+    required: false
 
   reaction_add:
     description: 'Name of emoji (without semicolons) that will be added from a message (thread_ts argument must be provided).'
@@ -28,13 +28,13 @@ inputs:
     required: false
 
   username:
-    description: 'Customize the name of the bot - sender of a message. Remember to authorize chat:write.customize scope.'
+    description: 'Customize the name of the bot - sender of a message. Remember to authorize `chat:write.customize scope`.'
     required: false
 
   icon_emoji:
-    description: 'Customize an avatar by using an emoji. Remember to authorize chat:write.customize scope.'
+    description: 'Customize an avatar by using an emoji. Remember to authorize `chat:write.customize scope`.'
     required: false
 
   icon_url:
-    description: 'Customize bot avatar by providing avatar URL. Remember to authorize chat:write.customize scope.'
+    description: 'Customize bot avatar by providing an URL to image. Remember to authorize `chat:write.customize scope`.'
     required: false

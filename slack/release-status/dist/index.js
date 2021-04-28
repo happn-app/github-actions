@@ -13066,39 +13066,6 @@ async function run(ctx) {
     const { owner, repo } = ctx.repo;
     const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
     const workflowURL = `${repositoryURL}/actions/runs/${runId}`;
-    let params = {
-        channel,
-        text: message,
-        blocks: [
-            {
-                type: 'section',
-                text: {
-                    type: 'mrkdwn',
-                    text: message,
-                },
-                accessory: {
-                    type: 'button',
-                    text: {
-                        type: 'plain_text',
-                        text: 'See run details',
-                        emoji: true,
-                    },
-                    value: 'click_me_123',
-                    url: workflowURL,
-                    action_id: 'button-action',
-                },
-            },
-        ],
-    };
-    if (username) {
-        params.username = username;
-    }
-    if (iconURL) {
-        params.icon_url = iconURL;
-    }
-    if (iconEmoji) {
-        params.icon_emoji = iconEmoji;
-    }
     if (threadTS) {
         if (addReaction) {
             await client.reactions.add({
@@ -13114,11 +13081,48 @@ async function run(ctx) {
                 channel,
             });
         }
-        params.thread_ts = threadTS;
     }
-    const result = await client.chat.postMessage(params);
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)('ts', result.ts);
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)('channel', result.channel);
+    if (message) {
+        let params = {
+            channel,
+            text: message,
+            blocks: [
+                {
+                    type: 'section',
+                    text: {
+                        type: 'mrkdwn',
+                        text: message,
+                    },
+                    accessory: {
+                        type: 'button',
+                        text: {
+                            type: 'plain_text',
+                            text: 'See run details',
+                            emoji: true,
+                        },
+                        value: 'click_me_123',
+                        url: workflowURL,
+                        action_id: 'button-action',
+                    },
+                },
+            ],
+        };
+        if (threadTS) {
+            params.thread_ts = threadTS;
+        }
+        if (username) {
+            params.username = username;
+        }
+        if (iconURL) {
+            params.icon_url = iconURL;
+        }
+        if (iconEmoji) {
+            params.icon_emoji = iconEmoji;
+        }
+        const result = await client.chat.postMessage(params);
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)('ts', result.ts);
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)('channel', result.channel);
+    }
 }
 run(_actions_github__WEBPACK_IMPORTED_MODULE_1__.context).catch(error => {
     (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)(error.toString());

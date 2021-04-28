@@ -29,40 +29,6 @@ async function run(ctx: Context): Promise<void> {
   const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`
   const workflowURL = `${repositoryURL}/actions/runs/${runId}`
 
-  let params: ChatPostMessageArguments = {
-    channel,
-    text: message,
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: message,
-        },
-        accessory: {
-          type: 'button',
-          text: {
-            type: 'plain_text',
-            text: 'See run details',
-            emoji: true,
-          },
-          value: 'click_me_123',
-          url: workflowURL,
-          action_id: 'button-action',
-        },
-      },
-    ],
-  }
-  if (username) {
-    params.username = username
-  }
-  if (iconURL) {
-    params.icon_url = iconURL
-  }
-  if (iconEmoji) {
-    params.icon_emoji = iconEmoji
-  }
-
   if (threadTS) {
     if (addReaction) {
       await client.reactions.add({
@@ -78,14 +44,51 @@ async function run(ctx: Context): Promise<void> {
         channel,
       })
     }
-
-    params.thread_ts = threadTS
   }
 
-  const result = await client.chat.postMessage(params)
+  if (message) {
+    let params: ChatPostMessageArguments = {
+      channel,
+      text: message,
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: message,
+          },
+          accessory: {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: 'See run details',
+              emoji: true,
+            },
+            value: 'click_me_123',
+            url: workflowURL,
+            action_id: 'button-action',
+          },
+        },
+      ],
+    }
+    if (threadTS) {
+      params.thread_ts = threadTS
+    }
+    if (username) {
+      params.username = username
+    }
+    if (iconURL) {
+      params.icon_url = iconURL
+    }
+    if (iconEmoji) {
+      params.icon_emoji = iconEmoji
+    }
 
-  setOutput('ts', result.ts)
-  setOutput('channel', result.channel)
+    const result = await client.chat.postMessage(params)
+
+    setOutput('ts', result.ts)
+    setOutput('channel', result.channel)
+  }
 }
 
 run(context).catch(error => {
