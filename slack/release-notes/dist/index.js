@@ -27198,6 +27198,7 @@ const ReleaseBody = 'release_body';
 const Username = 'username';
 const IconEmoji = 'icon_emoji';
 const IconURL = 'icon_url';
+const TagName = 'tag_name';
 function extractTag(ref) {
     if (!ref) {
         throw new Error('provided ref is empty or not provided at all');
@@ -27214,24 +27215,25 @@ async function run(ctx) {
     const username = (0,core.getInput)(Username);
     const iconEmoji = (0,core.getInput)(IconEmoji);
     const iconURL = (0,core.getInput)(IconURL);
+    const tagName = (0,core.getInput)(TagName);
     const { ref } = ctx;
     const { owner, repo } = ctx.repo;
-    const tagName = extractTag(ref);
+    const tag = extractTag(tagName || ref);
     const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
-    const releaseURL = `${repositoryURL}/releases/tag/${tagName}`;
+    const releaseURL = `${repositoryURL}/releases/tag/${tag}`;
     const release = await gh.repos.getReleaseByTag({
         owner,
         repo,
-        tag: tagName,
+        tag,
     });
-    const releaseName = release.data.name || tagName;
+    const releaseName = release.data.name || tag;
     const changelog = slackify_markdown_default()(releaseBody || release.data.body || 'No changelog provided');
     let blocks = [
         {
             type: 'header',
             text: {
                 type: 'plain_text',
-                text: `Changelog of ${release.data.name || tagName}`,
+                text: `Changelog of ${release.data.name || tag}`,
                 emoji: true,
             },
         },
@@ -27260,7 +27262,7 @@ async function run(ctx) {
             repo,
             per_page: 1,
             base: baseTag,
-            head: tagName,
+            head: tag,
         });
         const diffURL = compare.data.html_url;
         blocks.push({
@@ -27268,7 +27270,7 @@ async function run(ctx) {
             elements: [
                 {
                     type: 'mrkdwn',
-                    text: `See also <${releaseURL}}|full release notes on GitHub> or a <${diffURL}|diff bettween ${baseTag} and ${tagName}>.`,
+                    text: `See also <${releaseURL}}|full release notes on GitHub> or a <${diffURL}|diff bettween ${baseTag} and ${tag}>.`,
                 },
             ],
         });

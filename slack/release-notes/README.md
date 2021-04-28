@@ -79,12 +79,28 @@ jobs:
 If you have some pipeline to automate changelog generation you can define it in the `release_body`
 parameter, i.e.:
 
+> Please note, it requires providing `tag_name` parameter in order to reference with a created
+> release.
+
 ```yaml
+
+on:
+  push:
+    branch:
+      - 'master'
+
 # ...
 
 jobs:
   release:
     steps:
+      # Here it extract a tag from a GitHub-provided variable. It could be read from some 
+      # package.json too.
+      - name: Extract tag from ref 
+        id: extract-tag
+        run: |
+          printf "::set-output name=%s::%s\n" tag-name "${GITHUB_REF#refs/tags/}"
+
       - name: Notify workflow start
         id: notify-start
         uses: happn-tech/github-actions/slack/release-start@master
@@ -92,14 +108,8 @@ jobs:
           SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ steps.extract-tag.outputs.tag-name }}
           channel: ${{ env.SLACK_CHANNEL_NAME }}
-
-      # ...
-
-      - name: Extract tag from ref
-        id: extract-tag
-        run: |
-          printf "::set-output name=%s::%s\n" tag-name "${GITHUB_REF#refs/tags/}"
 
       - name: Generate changelog
         id: generate-changelog
@@ -120,6 +130,7 @@ jobs:
           SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ steps.extract-tag.outputs.tag-name }}
           channel: ${{ steps.notify-start.outputs.channel }}
           thread_ts: ${{ steps.notify-start.outputs.ts }}
           release_body: ${{ steps.generate-changelog.outputs.changelog }}
@@ -133,6 +144,7 @@ jobs:
 
 | Name | Type | Necessity | Description |
 | ---- | ---- | --------- | ----------- |
+| `tag_name` | String | Optional | Name of the tag (ex: 1.1.0). Useful, whether workflow is responsible for creating a tag (release). |
 | `channel` | String | Mandatory | Name of a slack channel (ex: general) or a channel identifier when sending in thread. |
 | `thread_ts` | String | Optional | Timestamp of message used as a reference to reply in thread. |
 | `release_body` | String | Optional | A content of release body (e.g. a changelog). |
@@ -144,8 +156,8 @@ jobs:
 
 Action has dozens of known limitations:
 
-- This action MUST be used only in release pipelines - workflows triggered when tag has been
-  created.
+- This action MUST be only used in pipelines where the tag is created (it is utilized to create
+  links to diff and release details).
 - If you would like to skip some lines (e.g. a header) you have to done it manually and supply the
   changelog in `release_body` parameter.
 
