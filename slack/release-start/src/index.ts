@@ -8,7 +8,6 @@ const slack = new WebClient(process.env.SLACK_TOKEN)
 
 const Channel = 'channel'
 const ReactionAdd = 'reaction_add'
-const RepositoryName = 'repository_name'
 const Message = 'message'
 const Username = 'username'
 const IconEmoji = 'icon_emoji'
@@ -27,7 +26,6 @@ function extractTag(ref: string): string {
 async function run(ctx: Context): Promise<void> {
   const channel = getInput(Channel)
   const addReaction = getInput(ReactionAdd)
-  const repositoryName = getInput(RepositoryName)
   const message = getInput(Message)
   const username = getInput(Username)
   const iconEmoji = getInput(IconEmoji)
@@ -74,7 +72,7 @@ async function run(ctx: Context): Promise<void> {
           },
           {
             type: 'mrkdwn',
-            text: `<${repositoryURL}|${repositoryName || repo}>`,
+            text: `<${repositoryURL}|${repo}>`,
           },
         ],
       },
