@@ -8812,27 +8812,6 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
-/***/ 8691:
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports = string => {
-	if (typeof string !== 'string') {
-		throw new TypeError('Expected a string');
-	}
-
-	// Escape characters with special meaning either inside or outside character sets.
-	// Use a simple backslash escape when it’s always valid, and a \unnnn escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
-	return string
-		.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
-		.replace(/-/g, '\\x2d');
-};
-
-
-/***/ }),
-
 /***/ 1848:
 /***/ ((module) => {
 
@@ -10794,7 +10773,7 @@ module.exports = findAndReplace
 
 var visit = __nccwpck_require__(3246)
 var convert = __nccwpck_require__(4070)
-var escape = __nccwpck_require__(8691)
+var escape = __nccwpck_require__(2802)
 
 var splice = [].splice
 
@@ -10968,6 +10947,27 @@ function toFunction(replace) {
     return replace
   }
 }
+
+
+/***/ }),
+
+/***/ 2802:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = string => {
+	if (typeof string !== 'string') {
+		throw new TypeError('Expected a string');
+	}
+
+	// Escape characters with special meaning either inside or outside character sets.
+	// Use a simple backslash escape when it’s always valid, and a \unnnn escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
+	return string
+		.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+		.replace(/-/g, '\\x2d');
+};
 
 
 /***/ }),
@@ -27194,7 +27194,7 @@ const slack = new dist.WebClient(process.env.SLACK_TOKEN);
 const gh = api(process.env.GITHUB_TOKEN);
 const Channel = 'channel';
 const ThreadTimestamp = 'thread_ts';
-const RepositoryName = 'repository_name';
+// const RepositoryName = 'repository_name'
 const ReleaseBody = 'release_body';
 const Username = 'username';
 const IconEmoji = 'icon_emoji';
@@ -27211,7 +27211,7 @@ function extractTag(ref) {
 async function run(ctx) {
     const channel = (0,core.getInput)(Channel);
     const threadTS = (0,core.getInput)(ThreadTimestamp);
-    const repositoryName = (0,core.getInput)(RepositoryName);
+    // const repositoryName = getInput(RepositoryName)
     const releaseBody = (0,core.getInput)(ReleaseBody);
     const username = (0,core.getInput)(Username);
     const iconEmoji = (0,core.getInput)(IconEmoji);
@@ -27233,26 +27233,26 @@ async function run(ctx) {
             type: 'header',
             text: {
                 type: 'plain_text',
-                text: `Changelog`,
+                text: `Changelog of ${release.data.name || tagName}`,
                 emoji: true,
             },
         },
-        {
-            type: 'context',
-            elements: [
-                {
-                    type: 'mrkdwn',
-                    text: `<${releaseURL}|${tagName}>`,
-                },
-                {
-                    type: 'mrkdwn',
-                    text: `<${repositoryURL}|${repositoryName || repo}>`,
-                },
-            ],
-        },
-        {
-            type: 'divider',
-        },
+        // {
+        //   type: 'context',
+        //   elements: [
+        //     {
+        //       type: 'mrkdwn',
+        //       text: `<${releaseURL}|${tagName}>`,
+        //     },
+        //     {
+        //       type: 'mrkdwn',
+        //       text: `<${repositoryURL}|${repositoryName || repo}>`,
+        //     },
+        //   ],
+        // },
+        // {
+        //   type: 'divider',
+        // },
         {
             type: 'context',
             elements: [

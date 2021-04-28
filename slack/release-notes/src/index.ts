@@ -18,7 +18,6 @@ const gh = GitHubAPI(process.env.GITHUB_TOKEN)
 
 const Channel = 'channel'
 const ThreadTimestamp = 'thread_ts'
-const RepositoryName = 'repository_name'
 const ReleaseBody = 'release_body'
 const Username = 'username'
 const IconEmoji = 'icon_emoji'
@@ -37,7 +36,6 @@ function extractTag(ref: string): string {
 async function run(ctx: Context): Promise<void> {
   const channel = getInput(Channel)
   const threadTS = getInput(ThreadTimestamp)
-  const repositoryName = getInput(RepositoryName)
   const releaseBody = getInput(ReleaseBody)
   const username = getInput(Username)
   const iconEmoji = getInput(IconEmoji)
@@ -64,25 +62,9 @@ async function run(ctx: Context): Promise<void> {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: `Changelog`,
+        text: `Changelog of ${release.data.name || tagName}`,
         emoji: true,
       },
-    },
-    {
-      type: 'context',
-      elements: [
-        {
-          type: 'mrkdwn',
-          text: `<${releaseURL}|${tagName}>`,
-        },
-        {
-          type: 'mrkdwn',
-          text: `<${repositoryURL}|${repositoryName || repo}>`,
-        },
-      ],
-    },
-    {
-      type: 'divider',
     },
     {
       type: 'context',

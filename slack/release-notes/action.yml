@@ -15,10 +15,6 @@ inputs:
     description: 'Timestamp of message used as a reference to reply in thread.'
     required: false
 
-  repository_name:
-    description: 'A replacement name for the repository instead of slug (ex: Web App)'
-    required: false
-
   release_body:
     description: 'A content of release body. It could be a changelog for an example'
     required: false
