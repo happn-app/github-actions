@@ -1,0 +1,36 @@
+name: 'Slack Release Start Action'
+description: 'Publishes a Slack message and optionally adds a reaction about initiating a release workflow'
+branding:
+  icon: message-circle
+  color: blue
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+inputs:
+  channel:
+    description: 'Name of a slack channel (ex: general)'
+    required: true
+
+  reaction_add:
+    description: 'Name of the emoji reaction that is going to be added to the first message'
+    required: false
+
+  repository_name:
+    description: 'A replacement name for the repository instead of slug (ex: Web App).'
+    required: false
+
+  message:
+    description: 'The text of a message that will be posted on Slack'
+    required: false
+
+  username:
+    description: 'Customize the name of the bot - sender of a message. Remember to authorize chat:write.customize scope.'
+    required: false
+
+  icon_emoji:
+    description: 'Customize an avatar by using an emoji. Remember to authorize chat:write.customize scope.'
+    required: false
+
+  icon_url:
+    description: 'Customize bot avatar by providing avatar URL. Remember to authorize chat:write.customize scope.'
+    required: false
