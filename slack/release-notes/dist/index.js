@@ -27194,7 +27194,6 @@ const slack = new dist.WebClient(process.env.SLACK_TOKEN);
 const gh = api(process.env.GITHUB_TOKEN);
 const Channel = 'channel';
 const ThreadTimestamp = 'thread_ts';
-// const RepositoryName = 'repository_name'
 const ReleaseBody = 'release_body';
 const Username = 'username';
 const IconEmoji = 'icon_emoji';
@@ -27211,7 +27210,6 @@ function extractTag(ref) {
 async function run(ctx) {
     const channel = (0,core.getInput)(Channel);
     const threadTS = (0,core.getInput)(ThreadTimestamp);
-    // const repositoryName = getInput(RepositoryName)
     const releaseBody = (0,core.getInput)(ReleaseBody);
     const username = (0,core.getInput)(Username);
     const iconEmoji = (0,core.getInput)(IconEmoji);
@@ -27237,22 +27235,6 @@ async function run(ctx) {
                 emoji: true,
             },
         },
-        // {
-        //   type: 'context',
-        //   elements: [
-        //     {
-        //       type: 'mrkdwn',
-        //       text: `<${releaseURL}|${tagName}>`,
-        //     },
-        //     {
-        //       type: 'mrkdwn',
-        //       text: `<${repositoryURL}|${repositoryName || repo}>`,
-        //     },
-        //   ],
-        // },
-        // {
-        //   type: 'divider',
-        // },
         {
             type: 'context',
             elements: [
