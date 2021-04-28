@@ -12,6 +12,7 @@ const Message = 'message'
 const Username = 'username'
 const IconEmoji = 'icon_emoji'
 const IconURL = 'icon_url'
+const TagName = 'tag_name'
 
 function extractTag(ref: string): string {
   if (!ref) {
@@ -30,20 +31,21 @@ async function run(ctx: Context): Promise<void> {
   const username = getInput(Username)
   const iconEmoji = getInput(IconEmoji)
   const iconURL = getInput(IconURL)
+  const tagName = getInput(TagName)
 
-  const { ref, runId } = ctx
+  const { runId, ref } = ctx
   const { owner, repo } = ctx.repo
 
-  const tagName = extractTag(ref)
+  const tag = extractTag(tagName || ref)
   const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`
-  const releaseURL = `${repositoryURL}/releases/tag/${tagName}`
+  const releaseURL = `${repositoryURL}/releases/tag/${tag}`
   const workflowURL = `${repositoryURL}/actions/runs/${runId}`
 
-  const text = message || `*${repo}* ${tagName}`
+  const text = message || `*${repo}* ${tag}`
 
   let params: ChatPostMessageArguments = {
     channel,
-    text: text.replace(/{{?tag?}}/, tagName),
+    text: text.replace(/{{?tag?}}/, tag),
     blocks: [
       {
         type: 'section',
@@ -68,7 +70,7 @@ async function run(ctx: Context): Promise<void> {
         elements: [
           {
             type: 'mrkdwn',
-            text: `<${releaseURL}|${tagName}>`,
+            text: `<${releaseURL}|${tag}>`,
           },
           {
             type: 'mrkdwn',

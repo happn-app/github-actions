@@ -67,6 +67,7 @@ jobs:
 
 | Name | Type | Necessity | Description |
 | ---- | ---- | --------- | ----------- |
+| `tag_name` | String | Optional | Name of the tag (ex: 1.1.0). Useful, whether workflow is responsible for creating a tag (release). |
 | `channel` | String | Mandatory | Name of a slack channel (ex: general). |
 | `reaction_add` | String | Optional | Name of the emoji reaction that is going to be added to the first message. |
 | `message` | String | Optional | The text of a message that will be posted on Slack. |
@@ -78,8 +79,8 @@ jobs:
 
 Action has dozens of known limitations:
 
-- This action MUST be used only in release pipelines - workflows triggered when tag has been
-  created.
+- This action MUST be only used in pipelines where the tag is created (utilized to create link 
+  to release details).
 
 ## Contributing
 

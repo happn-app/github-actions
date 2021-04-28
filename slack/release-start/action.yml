@@ -7,6 +7,10 @@ runs:
   using: 'node12'
   main: 'dist/index.js'
 inputs:
+  tag_name:
+    description: 'Name of the tag (ex: 1.1.0). Useful, whether workflow is responsible for creating a tag (release).'
+    required: false
+
   channel:
     description: 'Name of a slack channel (ex: general).'
     required: true

@@ -14060,6 +14060,7 @@ const Message = 'message';
 const Username = 'username';
 const IconEmoji = 'icon_emoji';
 const IconURL = 'icon_url';
+const TagName = 'tag_name';
 function extractTag(ref) {
     if (!ref) {
         throw new Error('provided ref is empty or not provided at all');
@@ -14076,16 +14077,17 @@ async function run(ctx) {
     const username = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Username);
     const iconEmoji = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconEmoji);
     const iconURL = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconURL);
-    const { ref, runId } = ctx;
+    const tagName = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(TagName);
+    const { runId, ref } = ctx;
     const { owner, repo } = ctx.repo;
-    const tagName = extractTag(ref);
+    const tag = extractTag(tagName || ref);
     const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
-    const releaseURL = `${repositoryURL}/releases/tag/${tagName}`;
+    const releaseURL = `${repositoryURL}/releases/tag/${tag}`;
     const workflowURL = `${repositoryURL}/actions/runs/${runId}`;
-    const text = message || `*${repo}* ${tagName}`;
+    const text = message || `*${repo}* ${tag}`;
     let params = {
         channel,
-        text: text.replace(/{{?tag?}}/, tagName),
+        text: text.replace(/{{?tag?}}/, tag),
         blocks: [
             {
                 type: 'section',
@@ -14110,7 +14112,7 @@ async function run(ctx) {
                 elements: [
                     {
                         type: 'mrkdwn',
-                        text: `<${releaseURL}|${tagName}>`,
+                        text: `<${releaseURL}|${tag}>`,
                     },
                     {
                         type: 'mrkdwn',
