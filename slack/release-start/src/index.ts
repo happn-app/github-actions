@@ -74,7 +74,7 @@ async function run(ctx: Context): Promise<void> {
 
   const mdRef = isReleaseWorkflow
     ? `<${releaseURL}|${tag}>`
-    : `[<${commitURL}|${shaShort}>]`
+    : `<${commitURL}|${shaShort}>`
 
   const text = (message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort}`)
     .replace(/{{.?tag.?}}/, tag)

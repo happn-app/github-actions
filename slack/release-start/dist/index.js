@@ -14105,7 +14105,7 @@ async function run(ctx) {
     const isReleaseWorkflow = getWorkflowType(ref) == 'tag' || tagName != '';
     const mdRef = isReleaseWorkflow
         ? `<${releaseURL}|${tag}>`
-        : `[<${commitURL}|${shaShort}>]`;
+        : `<${commitURL}|${shaShort}>`;
     const text = (message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort}`)
         .replace(/{{.?tag.?}}/, tag)
         .replace(/{{.?sha.?}}/, shaShort);
