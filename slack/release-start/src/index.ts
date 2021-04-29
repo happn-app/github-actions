@@ -24,6 +24,18 @@ function extractTag(ref: string): string {
   return ref
 }
 
+function getWorkflowType(ref: string) {
+  if (ref.startsWith('refs/tags/')) {
+    // Pushed on tag creation
+    return 'tag'
+  }
+  if (ref.startsWith('refs/heads/')) {
+    // Pushed to merge 2 branches
+    return 'branch'
+  }
+  throw new Error('could not recognize type of the workflow')
+}
+
 async function run(ctx: Context): Promise<void> {
   const channel = getInput(Channel)
   const addReaction = getInput(ReactionAdd)
@@ -33,19 +45,30 @@ async function run(ctx: Context): Promise<void> {
   const iconURL = getInput(IconURL)
   const tagName = getInput(TagName)
 
-  const { runId, ref } = ctx
+  const { runId, ref, sha } = ctx
   const { owner, repo } = ctx.repo
 
-  const tag = extractTag(tagName || ref)
   const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`
-  const releaseURL = `${repositoryURL}/releases/tag/${tag}`
   const workflowURL = `${repositoryURL}/actions/runs/${runId}`
 
-  const text = message || `*${repo}* ${tag}`
+  const tag = extractTag(tagName || ref)
+  const shaShort = sha.substr(0, 7)
+  const releaseURL = `${repositoryURL}/releases/tag/${tag}`
+  const commitURL = `${repositoryURL}/commit/${sha}`
+
+  const isReleaseWorkflow = !(getWorkflowType(ref) == 'branch' && tagName != '')
+
+  const mdRef = isReleaseWorkflow
+    ? `<[${commitURL}]|${shaShort}>`
+    : `<${releaseURL}|${tag}>`
+
+  const text = message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort}`
 
   let params: ChatPostMessageArguments = {
     channel,
-    text: text.replace(/{{?tag?}}/, tag),
+    text: text
+      .replace(/{{.?tag.?}}/, tag)
+      .replace(/{{.?sha.?}}/, shaShort),
     blocks: [
       {
         type: 'section',
@@ -70,7 +93,7 @@ async function run(ctx: Context): Promise<void> {
         elements: [
           {
             type: 'mrkdwn',
-            text: `<${releaseURL}|${tag}>`,
+            text: mdRef,
           },
           {
             type: 'mrkdwn',
