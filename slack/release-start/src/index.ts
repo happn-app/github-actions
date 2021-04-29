@@ -2,9 +2,13 @@ import { getInput, setFailed, setOutput } from '@actions/core'
 import { context } from '@actions/github'
 import { ChatPostMessageArguments, WebClient } from '@slack/web-api'
 import type { Context } from '@actions/github/lib/context'
+import GitHubAPI from './api'
 
 // @ts-ignore
 const slack = new WebClient(process.env.SLACK_TOKEN)
+
+// @ts-ignore
+const gh = GitHubAPI(process.env.GITHUB_TOKEN)
 
 const Channel = 'channel'
 const ReactionAdd = 'reaction_add'
@@ -13,6 +17,18 @@ const Username = 'username'
 const IconEmoji = 'icon_emoji'
 const IconURL = 'icon_url'
 const TagName = 'tag_name'
+
+function parseInputs() {
+  return {
+    channel: getInput(Channel),
+    addReaction: getInput(ReactionAdd),
+    message: getInput(Message),
+    username: getInput(Username),
+    iconEmoji: getInput(IconEmoji),
+    iconURL: getInput(IconURL),
+    tagName: getInput(TagName),
+  }
+}
 
 function extractTag(ref: string): string {
   if (!ref) {
@@ -24,34 +40,66 @@ function extractTag(ref: string): string {
   return ref
 }
 
-async function run(ctx: Context): Promise<void> {
-  const channel = getInput(Channel)
-  const addReaction = getInput(ReactionAdd)
-  const message = getInput(Message)
-  const username = getInput(Username)
-  const iconEmoji = getInput(IconEmoji)
-  const iconURL = getInput(IconURL)
-  const tagName = getInput(TagName)
+function getWorkflowType(ref: string) {
+  if (ref.startsWith('refs/tags/')) {
+    // Pushed on tag creation
+    return 'tag'
+  }
+  if (ref.startsWith('refs/heads/')) {
+    // Pushed to merge 2 branches
+    return 'branch'
+  }
+  throw new Error('could not recognize type of the workflow')
+}
 
-  const { runId, ref } = ctx
+async function run(ctx: Context): Promise<void> {
+  const {
+    channel,
+    addReaction,
+    message,
+    username,
+    iconEmoji,
+    iconURL,
+    tagName,
+  } = parseInputs()
+
+  const { runId, ref, sha } = ctx
   const { owner, repo } = ctx.repo
 
-  const tag = extractTag(tagName || ref)
   const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`
-  const releaseURL = `${repositoryURL}/releases/tag/${tag}`
   const workflowURL = `${repositoryURL}/actions/runs/${runId}`
 
-  const text = message || `*${repo}* ${tag}`
+  const tag = extractTag(tagName || ref)
+  const shaShort = sha.substr(0, 7)
+  const releaseURL = `${repositoryURL}/releases/tag/${tag}`
+  const commitURL = `${repositoryURL}/commit/${sha}`
+
+  const commit = await gh.rest.repos.getCommit({
+    owner,
+    repo,
+    ref: sha,
+  })
+
+  const isReleaseWorkflow = getWorkflowType(ref) == 'tag' || tagName != ''
+
+  const mdRef = isReleaseWorkflow
+    ? `<${releaseURL}|${tag}>`
+    : `<${commitURL}|${shaShort}>`
+
+  const text = (message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort} \n\n ${commit.data.commit.message}`)
+    .replace(/{{.?tag.?}}/, tag)
+    .replace(/{{.?sha.?}}/, shaShort)
+    .replace(/{{.?commit.?}}/, commit.data.commit.message)
 
   let params: ChatPostMessageArguments = {
     channel,
-    text: text.replace(/{{?tag?}}/, tag),
+    text,
     blocks: [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: text,
+          text,
         },
         accessory: {
           type: 'button',
@@ -70,7 +118,7 @@ async function run(ctx: Context): Promise<void> {
         elements: [
           {
             type: 'mrkdwn',
-            text: `<${releaseURL}|${tag}>`,
+            text: mdRef,
           },
           {
             type: 'mrkdwn',
