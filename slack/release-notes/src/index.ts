@@ -22,6 +22,7 @@ const ReleaseBody = 'release_body'
 const Username = 'username'
 const IconEmoji = 'icon_emoji'
 const IconURL = 'icon_url'
+const TagName = 'tag_name'
 
 function extractTag(ref: string): string {
   if (!ref) {
@@ -40,21 +41,22 @@ async function run(ctx: Context): Promise<void> {
   const username = getInput(Username)
   const iconEmoji = getInput(IconEmoji)
   const iconURL = getInput(IconURL)
+  const tagName = getInput(TagName)
 
   const { ref } = ctx
   const { owner, repo } = ctx.repo
 
-  const tagName = extractTag(ref)
+  const tag = extractTag(tagName || ref)
   const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`
-  const releaseURL = `${repositoryURL}/releases/tag/${tagName}`
+  const releaseURL = `${repositoryURL}/releases/tag/${tag}`
 
   const release = await gh.repos.getReleaseByTag({
     owner,
     repo,
-    tag: tagName,
+    tag,
   })
 
-  const releaseName = release.data.name || tagName
+  const releaseName = release.data.name || tag
   const changelog = slackifyMarkdown(releaseBody || release.data.body || 'No changelog provided')
 
   let blocks: (Block | KnownBlock)[] = [
@@ -62,7 +64,7 @@ async function run(ctx: Context): Promise<void> {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: `Changelog of ${release.data.name || tagName}`,
+        text: `Changelog of ${release.data.name || tag}`,
         emoji: true,
       },
     },
@@ -93,7 +95,7 @@ async function run(ctx: Context): Promise<void> {
       repo,
       per_page: 1,
       base: baseTag,
-      head: tagName,
+      head: tag,
     })
     const diffURL = compare.data.html_url
 
@@ -102,7 +104,7 @@ async function run(ctx: Context): Promise<void> {
       elements: [
         {
           type: 'mrkdwn',
-          text: `See also <${releaseURL}}|full release notes on GitHub> or a <${diffURL}|diff bettween ${baseTag} and ${tagName}>.`,
+          text: `See also <${releaseURL}}|full release notes on GitHub> or a <${diffURL}|diff bettween ${baseTag} and ${tag}>.`,
         },
       ],
     })
