@@ -75,13 +75,6 @@ jobs:
 | `icon_emoji` | String | Optional | Customize an avatar by using an emoji. Remember to authorize `chat:write.customize scope`. |
 | `icon_url` | String | Optional | Customize bot avatar by providing avatar URL. Remember to authorize `chat:write.customize scope`. |
 
-## Limitations
-
-Action has dozens of known limitations:
-
-- This action MUST be only used in pipelines where the tag is created (utilized to create link 
-  to release details).
-
 ## Contributing
 
 When you have made some changes to this action, you MUST provide a transpiled JavaScript file. For
