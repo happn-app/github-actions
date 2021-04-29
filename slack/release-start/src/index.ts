@@ -14,6 +14,18 @@ const IconEmoji = 'icon_emoji'
 const IconURL = 'icon_url'
 const TagName = 'tag_name'
 
+function parseInputs() {
+  return {
+    channel: getInput(Channel),
+    addReaction: getInput(ReactionAdd),
+    message: getInput(Message),
+    username: getInput(Username),
+    iconEmoji: getInput(IconEmoji),
+    iconURL: getInput(IconURL),
+    tagName: getInput(TagName),
+  }
+}
+
 function extractTag(ref: string): string {
   if (!ref) {
     throw new Error('provided ref is empty or not provided at all')
@@ -37,13 +49,15 @@ function getWorkflowType(ref: string) {
 }
 
 async function run(ctx: Context): Promise<void> {
-  const channel = getInput(Channel)
-  const addReaction = getInput(ReactionAdd)
-  const message = getInput(Message)
-  const username = getInput(Username)
-  const iconEmoji = getInput(IconEmoji)
-  const iconURL = getInput(IconURL)
-  const tagName = getInput(TagName)
+  const {
+    channel,
+    addReaction,
+    message,
+    username,
+    iconEmoji,
+    iconURL,
+    tagName,
+  } = parseInputs()
 
   const { runId, ref, sha } = ctx
   const { owner, repo } = ctx.repo
@@ -56,7 +70,7 @@ async function run(ctx: Context): Promise<void> {
   const releaseURL = `${repositoryURL}/releases/tag/${tag}`
   const commitURL = `${repositoryURL}/commit/${sha}`
 
-  const isReleaseWorkflow = !(getWorkflowType(ref) == 'branch' && tagName != '')
+  const isReleaseWorkflow = getWorkflowType(ref) == 'tag' || tagName != ''
 
   const mdRef = isReleaseWorkflow
     ? `<${releaseURL}|${tag}>`

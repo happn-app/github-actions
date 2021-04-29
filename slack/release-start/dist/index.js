@@ -14061,6 +14061,17 @@ const Username = 'username';
 const IconEmoji = 'icon_emoji';
 const IconURL = 'icon_url';
 const TagName = 'tag_name';
+function parseInputs() {
+    return {
+        channel: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Channel),
+        addReaction: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(ReactionAdd),
+        message: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Message),
+        username: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Username),
+        iconEmoji: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconEmoji),
+        iconURL: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconURL),
+        tagName: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(TagName),
+    };
+}
 function extractTag(ref) {
     if (!ref) {
         throw new Error('provided ref is empty or not provided at all');
@@ -14082,13 +14093,7 @@ function getWorkflowType(ref) {
     throw new Error('could not recognize type of the workflow');
 }
 async function run(ctx) {
-    const channel = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Channel);
-    const addReaction = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(ReactionAdd);
-    const message = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Message);
-    const username = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Username);
-    const iconEmoji = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconEmoji);
-    const iconURL = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconURL);
-    const tagName = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(TagName);
+    const { channel, addReaction, message, username, iconEmoji, iconURL, tagName, } = parseInputs();
     const { runId, ref, sha } = ctx;
     const { owner, repo } = ctx.repo;
     const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
@@ -14097,7 +14102,7 @@ async function run(ctx) {
     const shaShort = sha.substr(0, 7);
     const releaseURL = `${repositoryURL}/releases/tag/${tag}`;
     const commitURL = `${repositoryURL}/commit/${sha}`;
-    const isReleaseWorkflow = !(getWorkflowType(ref) == 'branch' && tagName != '');
+    const isReleaseWorkflow = getWorkflowType(ref) == 'tag' || tagName != '';
     const mdRef = isReleaseWorkflow
         ? `<${releaseURL}|${tag}>`
         : `[<${commitURL}|${shaShort}>]`;
