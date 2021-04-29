@@ -59,8 +59,8 @@ async function run(ctx: Context): Promise<void> {
   const isReleaseWorkflow = !(getWorkflowType(ref) == 'branch' && tagName != '')
 
   const mdRef = isReleaseWorkflow
-    ? `<[${commitURL}]|${shaShort}>`
-    : `<${releaseURL}|${tag}>`
+    ? `<${releaseURL}|${tag}>`
+    : `<[${commitURL}]|${shaShort}>`
 
   const text = message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort}`
 
