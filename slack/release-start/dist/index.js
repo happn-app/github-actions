@@ -2138,6 +2138,45 @@ exports.paginatingEndpoints = paginatingEndpoints;
 
 /***/ }),
 
+/***/ 8883:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+var __webpack_unused_export__;
+
+
+__webpack_unused_export__ = ({ value: true });
+
+const VERSION = "1.0.3";
+
+/**
+ * @param octokit Octokit instance
+ * @param options Options passed to Octokit constructor
+ */
+
+function requestLog(octokit) {
+  octokit.hook.wrap("request", (request, options) => {
+    octokit.log.debug("request", options);
+    const start = Date.now();
+    const requestOptions = octokit.request.endpoint.parse(options);
+    const path = requestOptions.url.replace(options.baseUrl, "");
+    return request(options).then(response => {
+      octokit.log.info(`${requestOptions.method} ${path} - ${response.status} in ${Date.now() - start}ms`);
+      return response;
+    }).catch(error => {
+      octokit.log.info(`${requestOptions.method} ${path} - ${error.status} in ${Date.now() - start}ms`);
+      throw error;
+    });
+  });
+}
+requestLog.VERSION = VERSION;
+
+exports.g = requestLog;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
 /***/ 3044:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -13995,35 +14034,6 @@ module.exports = require("zlib");;
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -14042,18 +14052,70 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
+// ESM COMPAT FLAG
 __nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2186);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5438);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nccwpck_require__.n(_actions_github__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _slack_web_api__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(431);
-/* harmony import */ var _slack_web_api__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nccwpck_require__.n(_slack_web_api__WEBPACK_IMPORTED_MODULE_2__);
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(2186);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(5438);
+// EXTERNAL MODULE: ./node_modules/@slack/web-api/dist/index.js
+var dist = __nccwpck_require__(431);
+// EXTERNAL MODULE: ./node_modules/@octokit/core/dist-node/index.js
+var dist_node = __nccwpck_require__(6762);
+// EXTERNAL MODULE: ./node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js
+var plugin_rest_endpoint_methods_dist_node = __nccwpck_require__(3044);
+// EXTERNAL MODULE: ./node_modules/@octokit/plugin-request-log/dist-node/index.js
+var plugin_request_log_dist_node = __nccwpck_require__(8883);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/internal/utils.js
+var utils = __nccwpck_require__(7914);
+;// CONCATENATED MODULE: ./src/api.ts
+
+
+
+
+
+const GitHub = dist_node.Octokit.plugin(plugin_rest_endpoint_methods_dist_node.restEndpointMethods, plugin_request_log_dist_node/* requestLog */.g).defaults({
+    baseUrl: (0,utils.getApiBaseUrl)()
+});
+/**
+ * creates an GitHub API client that authorizes requests using provided token.
+ *
+ * @param token GitHub token to authenticate requests
+ * @param options selection of configuration parameters used in client initialization
+ */
+/* harmony default export */ function api(token, options) {
+    return new GitHub({
+        request: { fetch: options && options.fetch },
+        auth: `token ${token}`,
+        log: {
+            info(msg) {
+                return console.info(msg);
+            },
+            debug(msg) {
+                if (!(0,core.isDebug)())
+                    return;
+                return console.debug(msg);
+            },
+            warn(msg) {
+                return console.warn(msg);
+            },
+            error(msg) {
+                return console.error(msg);
+            },
+        },
+    });
+}
+
+;// CONCATENATED MODULE: ./src/index.ts
+
 
 
 
 // @ts-ignore
-const slack = new _slack_web_api__WEBPACK_IMPORTED_MODULE_2__.WebClient(process.env.SLACK_TOKEN);
+const slack = new dist.WebClient(process.env.SLACK_TOKEN);
+// @ts-ignore
+const gh = api(process.env.GITHUB_TOKEN);
 const Channel = 'channel';
 const ReactionAdd = 'reaction_add';
 const Message = 'message';
@@ -14063,13 +14125,13 @@ const IconURL = 'icon_url';
 const TagName = 'tag_name';
 function parseInputs() {
     return {
-        channel: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Channel),
-        addReaction: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(ReactionAdd),
-        message: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Message),
-        username: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(Username),
-        iconEmoji: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconEmoji),
-        iconURL: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(IconURL),
-        tagName: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)(TagName),
+        channel: (0,core.getInput)(Channel),
+        addReaction: (0,core.getInput)(ReactionAdd),
+        message: (0,core.getInput)(Message),
+        username: (0,core.getInput)(Username),
+        iconEmoji: (0,core.getInput)(IconEmoji),
+        iconURL: (0,core.getInput)(IconURL),
+        tagName: (0,core.getInput)(TagName),
     };
 }
 function extractTag(ref) {
@@ -14102,13 +14164,19 @@ async function run(ctx) {
     const shaShort = sha.substr(0, 7);
     const releaseURL = `${repositoryURL}/releases/tag/${tag}`;
     const commitURL = `${repositoryURL}/commit/${sha}`;
+    const commit = await gh.rest.repos.getCommit({
+        owner,
+        repo,
+        ref: sha,
+    });
     const isReleaseWorkflow = getWorkflowType(ref) == 'tag' || tagName != '';
     const mdRef = isReleaseWorkflow
         ? `<${releaseURL}|${tag}>`
         : `<${commitURL}|${shaShort}>`;
-    const text = (message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort}`)
+    const text = (message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort} \n\n ${commit.data.commit.message}`)
         .replace(/{{.?tag.?}}/, tag)
-        .replace(/{{.?sha.?}}/, shaShort);
+        .replace(/{{.?sha.?}}/, shaShort)
+        .replace(/{{.?commit.?}}/, commit.data.commit.message);
     let params = {
         channel,
         text,
@@ -14163,11 +14231,11 @@ async function run(ctx) {
             channel: result.channel,
         });
     }
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)('ts', result.ts);
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)('channel', result.channel);
+    (0,core.setOutput)('ts', result.ts);
+    (0,core.setOutput)('channel', result.channel);
 }
-run(_actions_github__WEBPACK_IMPORTED_MODULE_1__.context).catch(error => {
-    (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)(error.toString());
+run(github.context).catch(error => {
+    (0,core.setFailed)(error.toString());
     if (process.env.GITHUB_ACTIONS == undefined) {
         console.error(error.stack);
     }

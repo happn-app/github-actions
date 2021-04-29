@@ -2,9 +2,13 @@ import { getInput, setFailed, setOutput } from '@actions/core'
 import { context } from '@actions/github'
 import { ChatPostMessageArguments, WebClient } from '@slack/web-api'
 import type { Context } from '@actions/github/lib/context'
+import GitHubAPI from './api'
 
 // @ts-ignore
 const slack = new WebClient(process.env.SLACK_TOKEN)
+
+// @ts-ignore
+const gh = GitHubAPI(process.env.GITHUB_TOKEN)
 
 const Channel = 'channel'
 const ReactionAdd = 'reaction_add'
@@ -70,15 +74,22 @@ async function run(ctx: Context): Promise<void> {
   const releaseURL = `${repositoryURL}/releases/tag/${tag}`
   const commitURL = `${repositoryURL}/commit/${sha}`
 
+  const commit = await gh.rest.repos.getCommit({
+    owner,
+    repo,
+    ref: sha,
+  })
+
   const isReleaseWorkflow = getWorkflowType(ref) == 'tag' || tagName != ''
 
   const mdRef = isReleaseWorkflow
     ? `<${releaseURL}|${tag}>`
     : `<${commitURL}|${shaShort}>`
 
-  const text = (message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort}`)
+  const text = (message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort} \n\n ${commit.data.commit.message}`)
     .replace(/{{.?tag.?}}/, tag)
     .replace(/{{.?sha.?}}/, shaShort)
+    .replace(/{{.?commit.?}}/, commit.data.commit.message)
 
   let params: ChatPostMessageArguments = {
     channel,
