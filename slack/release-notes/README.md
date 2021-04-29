@@ -147,6 +147,7 @@ jobs:
 | `tag_name` | String | Optional | Name of the tag (ex: 1.1.0). Useful, whether workflow is responsible for creating a tag (release). |
 | `channel` | String | Mandatory | Name of a slack channel (ex: general) or a channel identifier when sending in thread. |
 | `thread_ts` | String | Optional | Timestamp of message used as a reference to reply in thread. |
+| `message` | String | Optional | The text of a message that will be posted on Slack. If set, it will replace the thread_ts parameter value. |
 | `release_body` | String | Optional | A content of release body (e.g. a changelog). |
 | `username` | String | Optional | Customize the name of the bot - sender of a message. Remember to `authorize chat:write.customize` scope. |
 | `icon_emoji` | String | Optional | Customize an avatar by using an emoji. Remember to authorize `chat:write.customize scope`. |
