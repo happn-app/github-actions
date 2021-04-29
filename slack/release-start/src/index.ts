@@ -62,19 +62,19 @@ async function run(ctx: Context): Promise<void> {
     ? `<${releaseURL}|${tag}>`
     : `[<${commitURL}|${shaShort}>]`
 
-  const text = message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort}`
+  const text = (message || `*${repo}* ${isReleaseWorkflow ? tag : shaShort}`)
+    .replace(/{{.?tag.?}}/, tag)
+    .replace(/{{.?sha.?}}/, shaShort)
 
   let params: ChatPostMessageArguments = {
     channel,
-    text: text
-      .replace(/{{.?tag.?}}/, tag)
-      .replace(/{{.?sha.?}}/, shaShort),
+    text,
     blocks: [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: text,
+          text,
         },
         accessory: {
           type: 'button',
