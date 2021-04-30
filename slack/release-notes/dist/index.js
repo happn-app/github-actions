@@ -27240,13 +27240,12 @@ function parseInputs() {
 var dist = __nccwpck_require__(431);
 ;// CONCATENATED MODULE: ./src/slack.ts
 
-
 // @ts-ignore
 const slack = new dist.WebClient(process.env.SLACK_TOKEN);
 async function startThread({ message, releaseName, releaseURL, repo, repositoryURL, tagName, channel, chatArgs, }) {
-    const text = slackify_markdown_default()(message
+    const text = message
         .replace(/{{.?tag.?}}/, tagName)
-        .replace(/{{.?release.?}}/, releaseName || tagName));
+        .replace(/{{.?release.?}}/, releaseName || tagName);
     let params = {
         channel: channel,
         mrkdwn: true,

@@ -1,5 +1,4 @@
 import { Block, ChatPostMessageArguments, KnownBlock, WebClient } from '@slack/web-api'
-import slackifyMarkdown from 'slackify-markdown'
 
 // @ts-ignore
 const slack = new WebClient(process.env.SLACK_TOKEN)
@@ -28,11 +27,10 @@ export async function startThread(
     chatArgs,
   }: StartThreadParams,
 ) {
-  const text = slackifyMarkdown(
-    message
-      .replace(/{{.?tag.?}}/, tagName)
-      .replace(/{{.?release.?}}/, releaseName || tagName),
-  )
+  const text = message
+    .replace(/{{.?tag.?}}/, tagName)
+    .replace(/{{.?release.?}}/, releaseName || tagName)
+
   let params: ChatPostMessageArguments = {
     channel: channel,
     mrkdwn: true,
