@@ -27,9 +27,9 @@ export function makeChunks(body: string, size: number) {
     }
 
     chunk.push(line)
-    chunkSize += line.length
+    chunkSize += line.length + '\n'.length
   })
-  if (chunkSize > 0) {
+  if (chunk.length > 0) {
     chunks.push(chunk.join('\n'))
   }
 
