@@ -111,8 +111,8 @@ export async function postChangelog(
         {
           type: 'mrkdwn',
           text: diffURL && baseTag
-            ? `See also <${releaseURL}}|full release notes on GitHub> or a <${diffURL}|diff between ${baseTag} and ${tag}>.`
-            : `See also <${releaseURL}}|full release notes on GitHub>.`,
+            ? `See also <${releaseURL}|full release notes on GitHub> or a <${diffURL}|diff between ${baseTag} and ${tag}>.`
+            : `See also <${releaseURL}|full release notes on GitHub>.`,
         },
       ],
     },
