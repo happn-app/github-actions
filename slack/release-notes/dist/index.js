@@ -3807,7 +3807,7 @@ const form_data_1 = __importDefault(__nccwpck_require__(4334)); // tslint:disabl
 const methods_1 = __nccwpck_require__(1571);
 const instrument_1 = __nccwpck_require__(7763);
 const errors_1 = __nccwpck_require__(9781);
-const logger_1 = __nccwpck_require__(1336);
+const logger_1 = __nccwpck_require__(6900);
 const retry_policies_1 = __importDefault(__nccwpck_require__(2156));
 const helpers_1 = __nccwpck_require__(2500);
 /**
@@ -4321,7 +4321,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 var WebClient_1 = __nccwpck_require__(1424);
 Object.defineProperty(exports, "WebClient", ({ enumerable: true, get: function () { return WebClient_1.WebClient; } }));
 Object.defineProperty(exports, "WebClientEvent", ({ enumerable: true, get: function () { return WebClient_1.WebClientEvent; } }));
-var logger_1 = __nccwpck_require__(1336);
+var logger_1 = __nccwpck_require__(6900);
 Object.defineProperty(exports, "LogLevel", ({ enumerable: true, get: function () { return logger_1.LogLevel; } }));
 var errors_1 = __nccwpck_require__(9781);
 Object.defineProperty(exports, "ErrorCode", ({ enumerable: true, get: function () { return errors_1.ErrorCode; } }));
@@ -4394,7 +4394,7 @@ exports.getUserAgent = getUserAgent;
 
 /***/ }),
 
-/***/ 1336:
+/***/ 6900:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -8407,7 +8407,7 @@ if (typeof process === 'undefined' || process.type === 'renderer' || process.bro
  * Module dependencies.
  */
 
-const tty = __nccwpck_require__(3867);
+const tty = __nccwpck_require__(8993);
 const util = __nccwpck_require__(1669);
 
 /**
@@ -14150,7 +14150,7 @@ module.exports = __nccwpck_require__(2007)
 
 var asciiAlpha = __nccwpck_require__(3847)
 var asciiAlphanumeric = __nccwpck_require__(598)
-var asciiControl = __nccwpck_require__(3819)
+var asciiControl = __nccwpck_require__(1336)
 var markdownLineEnding = __nccwpck_require__(7506)
 var unicodePunctuation = __nccwpck_require__(9372)
 var unicodeWhitespace = __nccwpck_require__(9968)
@@ -15494,12 +15494,12 @@ function tokenizeNextPrefixedOrBlank(effects, ok, nok) {
 /***/ 2801:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-module.exports = __nccwpck_require__(7621)
+module.exports = __nccwpck_require__(3867)
 
 
 /***/ }),
 
-/***/ 7621:
+/***/ 3867:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 var markdownLineEndingOrSpace = __nccwpck_require__(9180)
@@ -15657,7 +15657,7 @@ module.exports = asciiAtext
 
 /***/ }),
 
-/***/ 3819:
+/***/ 1336:
 /***/ ((module) => {
 
 "use strict";
@@ -17059,7 +17059,7 @@ module.exports = attention
 var asciiAlpha = __nccwpck_require__(3847)
 var asciiAlphanumeric = __nccwpck_require__(598)
 var asciiAtext = __nccwpck_require__(245)
-var asciiControl = __nccwpck_require__(3819)
+var asciiControl = __nccwpck_require__(1336)
 
 var autolink = {
   name: 'autolink',
@@ -18072,7 +18072,7 @@ module.exports = definition
 "use strict";
 
 
-var asciiControl = __nccwpck_require__(3819)
+var asciiControl = __nccwpck_require__(1336)
 var markdownLineEndingOrSpace = __nccwpck_require__(9180)
 var markdownLineEnding = __nccwpck_require__(7506)
 
@@ -27012,7 +27012,7 @@ module.exports = require("tls");;
 
 /***/ }),
 
-/***/ 3867:
+/***/ 8993:
 /***/ ((module) => {
 
 "use strict";
@@ -27131,8 +27131,6 @@ __nccwpck_require__.r(__webpack_exports__);
 var core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(5438);
-// EXTERNAL MODULE: ./node_modules/@slack/web-api/dist/index.js
-var dist = __nccwpck_require__(431);
 // EXTERNAL MODULE: ./node_modules/@octokit/core/dist-node/index.js
 var dist_node = __nccwpck_require__(6762);
 // EXTERNAL MODULE: ./node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js
@@ -27182,24 +27180,7 @@ const GitHub = dist_node.Octokit.plugin(plugin_rest_endpoint_methods_dist_node.r
 // EXTERNAL MODULE: ./node_modules/slackify-markdown/index.js
 var slackify_markdown = __nccwpck_require__(9418);
 var slackify_markdown_default = /*#__PURE__*/__nccwpck_require__.n(slackify_markdown);
-;// CONCATENATED MODULE: ./src/index.ts
-
-
-
-
-
-// @ts-ignore
-const slack = new dist.WebClient(process.env.SLACK_TOKEN);
-// @ts-ignore
-const gh = api(process.env.GITHUB_TOKEN);
-const Channel = 'channel';
-const ThreadTimestamp = 'thread_ts';
-const ReleaseBody = 'release_body';
-const Username = 'username';
-const IconEmoji = 'icon_emoji';
-const IconURL = 'icon_url';
-const TagName = 'tag_name';
-const Message = 'message';
+;// CONCATENATED MODULE: ./src/utils.ts
 function extractTag(ref) {
     if (!ref) {
         throw new Error('provided ref is empty or not provided at all');
@@ -27209,68 +27190,100 @@ function extractTag(ref) {
     }
     return ref;
 }
-async function run(ctx) {
-    const channel = (0,core.getInput)(Channel);
-    const threadTS = (0,core.getInput)(ThreadTimestamp);
-    const releaseBody = (0,core.getInput)(ReleaseBody);
-    const username = (0,core.getInput)(Username);
-    const iconEmoji = (0,core.getInput)(IconEmoji);
-    const iconURL = (0,core.getInput)(IconURL);
-    const message = (0,core.getInput)(Message);
-    const tagName = (0,core.getInput)(TagName);
-    const { ref } = ctx;
-    const { owner, repo } = ctx.repo;
-    const tag = extractTag(tagName || ref);
-    const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
-    const releaseURL = `${repositoryURL}/releases/tag/${tag}`;
-    // Note: it will fail when only tag is created without a release.
-    const release = await gh.repos.getReleaseByTag({
-        owner,
-        repo,
-        tag,
-    });
-    const releaseName = release.data.name || tag;
-    const changelog = slackify_markdown_default()(releaseBody || release.data.body || 'No changelog provided');
-    let thread_ts = threadTS;
-    if (message) {
-        const text = message
-            .replace(/{{.?tag.?}}/, release.data.tag_name)
-            .replace(/{{.?release.?}}/, release.data.name || release.data.tag_name);
-        const result = await slack.chat.postMessage({
-            channel: channel,
-            mrkdwn: true,
-            text,
-            blocks: [
-                {
-                    type: 'section',
-                    text: {
-                        type: 'mrkdwn',
-                        text,
-                    },
-                },
-                {
-                    type: 'context',
-                    elements: [
-                        {
-                            type: 'mrkdwn',
-                            text: `<${release.data.html_url}|${release.data.tag_name}>`,
-                        },
-                        {
-                            type: 'mrkdwn',
-                            text: `<${repositoryURL}|${repo}>`,
-                        },
-                    ],
-                },
-            ],
-        });
-        thread_ts = result.thread_ts;
+function makeChunks(body, size) {
+    let chunks = [];
+    if (body.length < size) {
+        return [body];
     }
+    const lines = body.split('\n');
+    let chunk = [];
+    let chunkSize = 0;
+    lines.forEach((line) => {
+        if (chunkSize + line.length >= size) {
+            chunks.push(chunk.join('\n'));
+            chunk = [];
+            chunkSize = 0;
+        }
+        chunk.push(line);
+        chunkSize += line.length + '\n'.length;
+    });
+    if (chunk.length > 0) {
+        chunks.push(chunk.join('\n'));
+    }
+    return chunks;
+}
+
+;// CONCATENATED MODULE: ./src/inputs.ts
+
+const Channel = 'channel';
+const ThreadTimestamp = 'thread_ts';
+const ReleaseBody = 'release_body';
+const Username = 'username';
+const IconEmoji = 'icon_emoji';
+const IconURL = 'icon_url';
+const TagName = 'tag_name';
+const Message = 'message';
+function parseInputs() {
+    return {
+        channel: (0,core.getInput)(Channel),
+        threadTS: (0,core.getInput)(ThreadTimestamp),
+        releaseBody: (0,core.getInput)(ReleaseBody),
+        username: (0,core.getInput)(Username),
+        iconEmoji: (0,core.getInput)(IconEmoji),
+        iconURL: (0,core.getInput)(IconURL),
+        message: (0,core.getInput)(Message),
+        tagName: (0,core.getInput)(TagName),
+    };
+}
+
+// EXTERNAL MODULE: ./node_modules/@slack/web-api/dist/index.js
+var dist = __nccwpck_require__(431);
+;// CONCATENATED MODULE: ./src/slack.ts
+
+
+// @ts-ignore
+const slack = new dist.WebClient(process.env.SLACK_TOKEN);
+async function startThread({ message, releaseName, releaseURL, repo, repositoryURL, tagName, channel, chatArgs, }) {
+    const text = slackify_markdown_default()(message
+        .replace(/{{.?tag.?}}/, tagName)
+        .replace(/{{.?release.?}}/, releaseName || tagName));
+    let params = {
+        channel: channel,
+        mrkdwn: true,
+        text,
+        blocks: [
+            {
+                type: 'section',
+                text: {
+                    type: 'mrkdwn',
+                    text,
+                },
+            },
+            {
+                type: 'context',
+                elements: [
+                    {
+                        type: 'mrkdwn',
+                        text: `<${releaseURL}|${tagName}>`,
+                    },
+                    {
+                        type: 'mrkdwn',
+                        text: `<${repositoryURL}|${repo}>`,
+                    },
+                ],
+            },
+        ],
+        ...chatArgs,
+    };
+    return await slack.chat.postMessage(params);
+}
+async function postChangelog({ releaseName, releaseURL, changelog, diffURL, baseTag, tag, channel, chatArgs, }) {
     let blocks = [
         {
             type: 'header',
             text: {
                 type: 'plain_text',
-                text: `Changelog of ${release.data.name || tag}`,
+                text: `Changelog of ${releaseName || tag}`,
                 emoji: true,
             },
         },
@@ -27286,61 +27299,99 @@ async function run(ctx) {
         {
             type: 'divider',
         },
+        {
+            type: 'context',
+            elements: [
+                {
+                    type: 'mrkdwn',
+                    text: diffURL && baseTag
+                        ? `See also <${releaseURL}|full release notes on GitHub> or a <${diffURL}|diff between ${baseTag} and ${tag}>.`
+                        : `See also <${releaseURL}|full release notes on GitHub>.`,
+                },
+            ],
+        },
     ];
+    let params = {
+        channel,
+        text: `Changelog of ${releaseName}`,
+        blocks: blocks,
+        ...chatArgs,
+    };
+    return await slack.chat.postMessage(params);
+}
+
+;// CONCATENATED MODULE: ./src/index.ts
+
+
+
+
+
+
+
+// @ts-ignore
+const gh = api(process.env.GITHUB_TOKEN);
+async function compareReleases({ owner, repo, tag }) {
     const releases = await gh.repos.listReleases({
         owner,
         repo,
         per_page: 2,
     });
-    if (releases.data.length == 2) {
-        const baseTag = releases.data[1].tag_name;
-        const compare = await gh.repos.compareCommits({
-            owner,
-            repo,
-            per_page: 1,
-            base: baseTag,
-            head: tag,
-        });
-        const diffURL = compare.data.html_url;
-        blocks.push({
-            type: 'context',
-            elements: [
-                {
-                    type: 'mrkdwn',
-                    text: `See also <${releaseURL}}|full release notes on GitHub> or a <${diffURL}|diff bettween ${baseTag} and ${tag}>.`,
-                },
-            ],
-        });
+    if (releases.data.length < 2) {
+        return {};
     }
-    else {
-        blocks.push({
-            type: 'context',
-            elements: [
-                {
-                    type: 'mrkdwn',
-                    text: `See also <${releaseURL}}|full release notes on GitHub>.`,
-                },
-            ],
-        });
-    }
-    let params = {
-        channel: channel,
-        text: `Changelog of ${releaseName}`,
-        blocks: blocks,
+    const compare = await gh.repos.compareCommits({
+        owner,
+        repo,
+        per_page: 1,
+        base: releases.data[1].tag_name,
+        head: tag,
+    });
+    return {
+        baseTag: releases.data[1].tag_name,
+        diffURL: compare.data.html_url,
     };
-    if (thread_ts) {
-        params.thread_ts = thread_ts;
+}
+async function run(ctx) {
+    const { channel: channelName, threadTS, releaseBody, username, iconEmoji: icon_emoji, iconURL: icon_url, message, tagName, } = parseInputs();
+    let channel = channelName;
+    let thread_ts = threadTS;
+    const { ref } = ctx;
+    const { owner, repo } = ctx.repo;
+    const tag = extractTag(tagName || ref);
+    const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
+    const releaseURL = `${repositoryURL}/releases/tag/${tag}`;
+    // Note: it will fail when only tag is created without a release.
+    const release = await gh.repos.getReleaseByTag({ owner, repo, tag });
+    const releaseName = release.data.name || tag;
+    const changelog = slackify_markdown_default()(releaseBody || release.data.body || 'No changelog provided');
+    if (message) {
+        const result = await startThread({
+            channel, message, releaseURL, releaseName, repositoryURL, repo,
+            tagName: tag,
+            chatArgs: { username, icon_emoji, icon_url },
+        });
+        thread_ts = result.thread_ts;
+        channel = result.channel;
     }
-    if (username) {
-        params.username = username;
-    }
-    if (iconURL) {
-        params.icon_url = iconURL;
-    }
-    if (iconEmoji) {
-        params.icon_emoji = iconEmoji;
-    }
-    await slack.chat.postMessage(params);
+    const { diffURL, baseTag } = await compareReleases({ owner, repo, tag });
+    makeChunks(changelog, 8000).forEach((chunk) => {
+        postChangelog({
+            diffURL,
+            baseTag,
+            releaseName,
+            releaseURL,
+            tag,
+            channel,
+            changelog: chunk,
+            chatArgs: { thread_ts, icon_url, icon_emoji, username },
+        }).then((result) => {
+            if (!channel) {
+                channel = result.channel;
+            }
+        }, (err) => {
+            throw err;
+        });
+    });
 }
 run(github.context).catch(error => {
     (0,core.setFailed)(error.toString());
