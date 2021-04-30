@@ -27199,6 +27199,7 @@ const Username = 'username';
 const IconEmoji = 'icon_emoji';
 const IconURL = 'icon_url';
 const TagName = 'tag_name';
+const Message = 'message';
 function extractTag(ref) {
     if (!ref) {
         throw new Error('provided ref is empty or not provided at all');
@@ -27215,12 +27216,14 @@ async function run(ctx) {
     const username = (0,core.getInput)(Username);
     const iconEmoji = (0,core.getInput)(IconEmoji);
     const iconURL = (0,core.getInput)(IconURL);
+    const message = (0,core.getInput)(Message);
     const tagName = (0,core.getInput)(TagName);
     const { ref } = ctx;
     const { owner, repo } = ctx.repo;
     const tag = extractTag(tagName || ref);
     const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
     const releaseURL = `${repositoryURL}/releases/tag/${tag}`;
+    // Note: it will fail when only tag is created without a release.
     const release = await gh.repos.getReleaseByTag({
         owner,
         repo,
@@ -27228,6 +27231,40 @@ async function run(ctx) {
     });
     const releaseName = release.data.name || tag;
     const changelog = slackify_markdown_default()(releaseBody || release.data.body || 'No changelog provided');
+    let thread_ts = threadTS;
+    if (message) {
+        const text = message
+            .replace(/{{.?tag.?}}/, release.data.tag_name)
+            .replace(/{{.?release.?}}/, release.data.name || release.data.tag_name);
+        const result = await slack.chat.postMessage({
+            channel: channel,
+            mrkdwn: true,
+            text,
+            blocks: [
+                {
+                    type: 'section',
+                    text: {
+                        type: 'mrkdwn',
+                        text,
+                    },
+                },
+                {
+                    type: 'context',
+                    elements: [
+                        {
+                            type: 'mrkdwn',
+                            text: `<${release.data.html_url}|${release.data.tag_name}>`,
+                        },
+                        {
+                            type: 'mrkdwn',
+                            text: `<${repositoryURL}|${repo}>`,
+                        },
+                    ],
+                },
+            ],
+        });
+        thread_ts = result.thread_ts;
+    }
     let blocks = [
         {
             type: 'header',
@@ -27288,10 +27325,12 @@ async function run(ctx) {
     }
     let params = {
         channel: channel,
-        thread_ts: threadTS,
         text: `Changelog of ${releaseName}`,
         blocks: blocks,
     };
+    if (thread_ts) {
+        params.thread_ts = thread_ts;
+    }
     if (username) {
         params.username = username;
     }

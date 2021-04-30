@@ -19,6 +19,10 @@ inputs:
     description: 'Timestamp of message used as a reference to reply in thread.'
     required: false
 
+  message:
+    description: 'The text of a message that will be posted on Slack. If set, it will replace the thread_ts parameter value.'
+    required: false
+
   release_body:
     description: 'A content of release body (e.g. a changelog).'
     required: false

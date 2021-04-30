@@ -1,11 +1,6 @@
 import { getInput, setFailed } from '@actions/core'
 import { context } from '@actions/github'
-import {
-  Block,
-  ChatPostMessageArguments,
-  KnownBlock,
-  WebClient,
-} from '@slack/web-api'
+import { Block, ChatPostMessageArguments, KnownBlock, WebClient } from '@slack/web-api'
 import type { Context } from '@actions/github/lib/context'
 import GitHubAPI from './api'
 import slackifyMarkdown from 'slackify-markdown'
@@ -23,6 +18,7 @@ const Username = 'username'
 const IconEmoji = 'icon_emoji'
 const IconURL = 'icon_url'
 const TagName = 'tag_name'
+const Message = 'message'
 
 function extractTag(ref: string): string {
   if (!ref) {
@@ -41,6 +37,7 @@ async function run(ctx: Context): Promise<void> {
   const username = getInput(Username)
   const iconEmoji = getInput(IconEmoji)
   const iconURL = getInput(IconURL)
+  const message = getInput(Message)
   const tagName = getInput(TagName)
 
   const { ref } = ctx
@@ -50,6 +47,7 @@ async function run(ctx: Context): Promise<void> {
   const repositoryURL = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`
   const releaseURL = `${repositoryURL}/releases/tag/${tag}`
 
+  // Note: it will fail when only tag is created without a release.
   const release = await gh.repos.getReleaseByTag({
     owner,
     repo,
@@ -58,6 +56,42 @@ async function run(ctx: Context): Promise<void> {
 
   const releaseName = release.data.name || tag
   const changelog = slackifyMarkdown(releaseBody || release.data.body || 'No changelog provided')
+
+  let thread_ts = threadTS
+  if (message) {
+    const text = message
+      .replace(/{{.?tag.?}}/, release.data.tag_name)
+      .replace(/{{.?release.?}}/, release.data.name || release.data.tag_name)
+
+    const result = await slack.chat.postMessage({
+      channel: channel,
+      mrkdwn: true,
+      text,
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text,
+          },
+        },
+        {
+          type: 'context',
+          elements: [
+            {
+              type: 'mrkdwn',
+              text: `<${release.data.html_url}|${release.data.tag_name}>`,
+            },
+            {
+              type: 'mrkdwn',
+              text: `<${repositoryURL}|${repo}>`,
+            },
+          ],
+        },
+      ],
+    })
+    thread_ts = result.thread_ts as string
+  }
 
   let blocks: (Block | KnownBlock)[] = [
     {
@@ -122,9 +156,11 @@ async function run(ctx: Context): Promise<void> {
 
   let params: ChatPostMessageArguments = {
     channel: channel,
-    thread_ts: threadTS,
     text: `Changelog of ${releaseName}`,
     blocks: blocks,
+  }
+  if (thread_ts) {
+    params.thread_ts = thread_ts
   }
   if (username) {
     params.username = username
