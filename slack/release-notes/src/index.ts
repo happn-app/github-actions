@@ -64,8 +64,9 @@ async function run(ctx: Context): Promise<void> {
 
   if (message) {
     const result = await startThread({
-      channel, message, release, repositoryURL, repo,
-      chatArgs: { username, icon_emoji, icon_url, thread_ts },
+      channel, message, releaseURL, releaseName, repositoryURL, repo,
+      tagName: tag,
+      chatArgs: { username, icon_emoji, icon_url },
     })
     thread_ts = result.thread_ts as string
     channel = result.channel as string

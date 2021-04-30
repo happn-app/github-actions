@@ -6,9 +6,11 @@ const slack = new WebClient(process.env.SLACK_TOKEN)
 
 type StartThreadParams = {
   message: string
-  release: any
-  repositoryURL: string
+  releaseName: string
+  releaseURL: string,
   repo: string
+  repositoryURL: string
+  tagName: string
 
   channel: string
   chatArgs: { [K in keyof ChatPostMessageArguments]+?: ChatPostMessageArguments[K] }
@@ -17,17 +19,19 @@ type StartThreadParams = {
 export async function startThread(
   {
     message,
-    release,
-    repositoryURL,
+    releaseName,
+    releaseURL,
     repo,
+    repositoryURL,
+    tagName,
     channel,
     chatArgs,
   }: StartThreadParams,
 ) {
   const text = slackifyMarkdown(
     message
-      .replace(/{{.?tag.?}}/, release.data.tag_name)
-      .replace(/{{.?release.?}}/, release.data.name || release.data.tag_name),
+      .replace(/{{.?tag.?}}/, tagName)
+      .replace(/{{.?release.?}}/, releaseName || tagName),
   )
   let params: ChatPostMessageArguments = {
     channel: channel,
@@ -46,7 +50,7 @@ export async function startThread(
         elements: [
           {
             type: 'mrkdwn',
-            text: `<${release.data.html_url}|${release.data.tag_name}>`,
+            text: `<${releaseURL}|${tagName}>`,
           },
           {
             type: 'mrkdwn',
@@ -61,11 +65,11 @@ export async function startThread(
 }
 
 type PostChangelogParams = {
-  releaseName: string
-  releaseURL: string
+  baseTag: string | undefined
   changelog: string
   diffURL: string | undefined
-  baseTag: string | undefined
+  releaseName: string
+  releaseURL: string
   tag: string
 
   channel: string
@@ -124,6 +128,5 @@ export async function postChangelog(
     blocks: blocks,
     ...chatArgs,
   }
-
   return await slack.chat.postMessage(params)
 }
