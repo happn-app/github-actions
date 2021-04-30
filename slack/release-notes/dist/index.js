@@ -27370,7 +27370,7 @@ async function run(ctx) {
             tagName: tag,
             chatArgs: { username, icon_emoji, icon_url },
         });
-        thread_ts = result.thread_ts;
+        thread_ts = result.ts;
         channel = result.channel;
     }
     const { diffURL, baseTag } = await compareReleases({ owner, repo, tag });

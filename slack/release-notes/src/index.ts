@@ -68,7 +68,7 @@ async function run(ctx: Context): Promise<void> {
       tagName: tag,
       chatArgs: { username, icon_emoji, icon_url },
     })
-    thread_ts = result.thread_ts as string
+    thread_ts = result.ts as string
     channel = result.channel as string
   }
 
