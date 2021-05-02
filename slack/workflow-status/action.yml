@@ -1,4 +1,4 @@
-name: 'Slack Build Status Action'
+name: 'Slack Workflow Status Action'
 description: 'Publishes a message on Slack informing about the status of the workflow'
 branding:
   icon: message-circle
