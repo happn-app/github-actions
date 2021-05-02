@@ -68,10 +68,10 @@ jobs:
 | `message_success` | String | Optional | Text of a reply that will be published in thread, whether workflow will succeed. |
 | `message_cancel` | String | Optional | Text of a reply that will be published in thread, whether workflow will be cancelled. |
 | `message_failure` | String | Optional | Text of a reply that will be published in thread, whether workflow will fail. |
-| `reaction_running` | String | Optional | Name of emoji (without semicolons) that will be used for a reaction, informing it is running. |
-| `reaction_success` | String | Optional | Name of emoji (without semicolons) that will be used for a reaction, informing it has succeeded. |
-| `reaction_failure` | String | Optional | Name of emoji (without semicolons) that will be used for a reaction, informing it has failed. |
-| `reaction_cancel` | String | Optional | Name of emoji (without semicolons) that will be used for a reaction, informing it has been cancelled. |
+| `reaction_running` | String | Optional | Name of emoji (without semicolons) that will be used for a reaction, informing workflow is still running. |
+| `reaction_success` | String | Optional | Name of emoji (without semicolons) that will be used for a reaction, informing workflow has succeeded. |
+| `reaction_failure` | String | Optional | Name of emoji (without semicolons) that will be used for a reaction, informing workflow has failed. |
+| `reaction_cancel` | String | Optional | Name of emoji (without semicolons) that will be used for a reaction, informing workflow has been cancelled. |
 | `username` | String | Optional | Customize the name of the bot - sender of a message. Remember to authorize `chat:write.customize scope`. |
 | `icon_emoji` | String | Optional | Customize an avatar by using an emoji. Remember to authorize `chat:write.customize scope`. |
 | `icon_url` | String | Optional | Customize bot avatar by providing an URL to image. Remember to authorize `chat:write.customize scope`. |

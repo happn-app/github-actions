@@ -40,22 +40,22 @@ inputs:
     required: false
 
   reaction_running:
-    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing it is running.'
+    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing workflow is still running.'
     default: 'loading'
     required: false
 
   reaction_success:
-    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing it has succeeded.'
+    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing workflow has succeeded.'
     default: 'white_check_mark'
     required: false
 
   reaction_failure:
-    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing it has failed.'
+    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing workflow has failed.'
     default: 'skull_and_crossbones'
     required: false
 
   reaction_cancel:
-    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing it has been cancelled.'
+    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing workflow has been cancelled.'
     default: 'hand'
     required: false
 
