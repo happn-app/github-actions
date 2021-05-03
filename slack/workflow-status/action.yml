@@ -15,6 +15,7 @@ inputs:
   status:
     description: 'Status of the workflow job. Please use interpolate job.status in place of a parameter value.'
     required: true
+    default: ${{ job.status }}
 
   tag_name:
     description: 'Name of the tag (ex: 1.1.0). Useful, whether workflow is responsible for creating a release.'
