@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "rimraf dist && npm run build:main && npm run build:post",
+    "build:main": "ncc build src/main/index.ts -o dist/main --source-map",
+    "build:post": "ncc build src/post/index.ts -o dist/post --source-map"
+  },
+  "dependencies": {
+    "@actions/core": "^1.2.3",
+    "@actions/github": "^4.0.0",
+    "@octokit/plugin-request-log": "^1.0.3",
+    "@slack/web-api": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.20.11",
+    "@vercel/ncc": "^0.28.3",
+    "rimraf": "^2.6.3",
+    "typescript": "^4.2.4"
+  }
+}

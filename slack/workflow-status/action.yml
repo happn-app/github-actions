@@ -1,0 +1,72 @@
+name: 'Slack Workflow Status Action'
+description: 'Publishes a message on Slack informing about the status of the workflow'
+branding:
+  icon: message-circle
+  color: blue
+runs:
+  using: 'node12'
+  main: 'dist/main/index.js'
+  post: 'dist/post/index.js'
+inputs:
+  channel:
+    description: 'Name of a slack channel (ex: general) or a channel identifier when sending in thread.'
+    required: true
+
+  status:
+    description: 'Status of the workflow job. Please use `${{ job.status }}` in place of a parameter value.'
+    required: true
+
+  tag_name:
+    description: 'Name of the tag (ex: 1.1.0). Useful, whether workflow is responsible for creating a release.'
+    required: false
+
+  message:
+    description: 'Text of a message that will be published to `channel`.'
+    required: false
+
+  message_success:
+    description: 'Text of a reply that will be published in thread, whether workflow will succeed.'
+    default: 'Workflow has passed successfully :tada:'
+    required: false
+
+  message_cancel:
+    description: 'Text of a reply that will be published in thread, whether workflow will be cancelled.'
+    default: 'Workflow has been cancelled :coffin:'
+    required: false
+
+  message_failure:
+    description: 'Text of a reply that will be published in thread, whether workflow will fail.'
+    default: 'Workflow has failed :cry:'
+    required: false
+
+  reaction_running:
+    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing workflow is still running.'
+    default: 'loading'
+    required: false
+
+  reaction_success:
+    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing workflow has succeeded.'
+    default: 'white_check_mark'
+    required: false
+
+  reaction_failure:
+    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing workflow has failed.'
+    default: 'skull_and_crossbones'
+    required: false
+
+  reaction_cancel:
+    description: 'Name of emoji (without semicolons) that will be used for a reaction, informing workflow has been cancelled.'
+    default: 'hand'
+    required: false
+
+  username:
+    description: 'Customize the name of the bot - sender of a message. Remember to authorize `chat:write.customize scope`.'
+    required: false
+
+  icon_emoji:
+    description: 'Customize an avatar by using an emoji. Remember to authorize `chat:write.customize scope`.'
+    required: false
+
+  icon_url:
+    description: 'Customize bot avatar by providing an URL to image. Remember to authorize `chat:write.customize scope`.'
+    required: false
