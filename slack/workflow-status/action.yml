@@ -13,7 +13,7 @@ inputs:
     required: true
 
   status:
-    description: 'Status of the workflow job. Please use `${{ job.status }}` in place of a parameter value.'
+    description: 'Status of the workflow job. Please use interpolate job.status in place of a parameter value.'
     required: true
 
   tag_name:
