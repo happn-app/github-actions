@@ -31,6 +31,10 @@ function getWorkflowType(ref: string) {
     // Pushed to merge 2 branches
     return 'branch'
   }
+  if (ref.startsWith('refs/pull/')) {
+    // Pull request opened, synchronized, opened
+    return 'pull_request'
+  }
   throw new Error('could not recognize type of the workflow')
 }
 
