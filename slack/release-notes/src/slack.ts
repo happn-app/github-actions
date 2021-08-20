@@ -126,5 +126,13 @@ export async function postChangelog(
     blocks: blocks,
     ...chatArgs,
   }
+
+  // Wait an additional second in order to make sure multi-message changelog is sent in correct order.
+  await sleep(1000)
+
   return await slack.chat.postMessage(params)
+}
+
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
