@@ -1,0 +1,11 @@
+name: 'LocMapper'
+description: GitHub Action for using
+inputs:
+  command:
+    description: 'Default input command'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.command }}
