@@ -1,5 +1,5 @@
 name: 'LocMapper'
-description: GitHub Action for using
+description: GitHub Action for using locmapper cli
 inputs:
   command:
     description: 'Default input command'
