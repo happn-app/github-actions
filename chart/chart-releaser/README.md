@@ -17,10 +17,6 @@ on:
   push:
     branches:
       - master
-
-env:
-  SLACK_CHANNEL_NAME: "testing"
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -44,6 +40,7 @@ jobs:
 | Name | Type | Necessity | Description |
 | ---- | ---- | --------- | ----------- |
 | `chart-repository-url` | String | Optional | url of chart repository |
+| `chart` | String | Optional | chart to release manually |
 
 ## Limitations
 

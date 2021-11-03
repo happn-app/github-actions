@@ -1,13 +1,17 @@
 name: 'Happn Chart Releaser'
-description: 'GitHub Action for running remote tests'
+description: 'GitHub Action for releasing charts'
 inputs:
   chart-repository-url:
     description: 'charts repository url'
     required: false
+  chart:
+    description: 'Chart to release manually'
+    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  env:
+    CHART_REPO_URL: ${{ inputs.chart-repository-url }}
   args:
-    - "-u"
-    - ${{ inputs.chart-repository-url }}
+    - ${{ inputs.chart }}
   post-entrypoint: '/cleanup.sh'

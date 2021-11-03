@@ -6,31 +6,26 @@ set -o nounset
 set -o pipefail
 
 main() {
-    local config=
     local charts_dir=.
-    local charts_repo_url=
-
-    parse_command_line "$@"
-
+    local chart_manual=
+    local charts_repo_url=${CHART_REPO_URL:-http://charts.happn.io/api/charts}
     local repo_root
     repo_root=$(git rev-parse --show-toplevel)
     pushd "$repo_root" > /dev/null
 
-    echo 'Looking up latest tag...'
-    local latest_tag
-    latest_tag=$(lookup_latest_tag)
+    parse_command_line "$@"
 
-    echo "Discovering changed charts since '$latest_tag'..."
+    
     local changed_charts=()
-    echo "Found charts $(lookup_changed_charts "$latest_tag")"
-    while IFS= read -r line; do changed_charts+=("$line"); done <<< "$(lookup_changed_charts "$latest_tag")"
-
+    find_changed_charts;
+   
     if [[ -n "${changed_charts[*]}" ]]; then
 
         rm -rf .helm-release-packages
         mkdir -p .helm-release-packages
 
         for chart in "${changed_charts[@]}"; do
+            echo $(pwd)
             if [[ -d "$chart" ]]; then
                 package_chart "$chart"
             else
@@ -47,24 +42,28 @@ main() {
 }
 
 parse_command_line() {
-    while :; do
-        case "${1:-}" in
-            -u|--charts-repo-url)
-                if [[ -n "${2:-}" ]]; then
-                    charts_repo_url="$2"
-                    shift
-                fi
-                ;;
-            *)
-                break
-                ;;
-        esac
+    if [[ ! -z "${1:-}" ]]; then
+      if [[ ! -d "$1"  || ! -f "$1/Chart.yaml" ]]; then
+        echo "ERROR: $1 is not a chart directory" 1>&2
+        exit 1
+      fi
+        chart_manual=$1
+    fi
+}
 
-        shift
-    done
-
-    if [[ -z "$charts_repo_url" ]]; then
-        charts_repo_url="http://charts.happn.io"
+find_changed_charts() {
+   if [[ ! -z "${chart_manual}" ]]
+    then
+      changed_charts+=("${chart_manual}")
+    else
+      echo 'Looking up latest tag...'
+          local latest_tag
+          latest_tag=$(lookup_latest_tag)
+          echo "Discovering changed charts since '$latest_tag'..."
+          changed_charts_from_git=$(lookup_changed_charts_from_git "$latest_tag")
+          
+          echo "Found charts: $(echo $changed_charts_from_git | tr -d '\n')"
+          while IFS= read -r line; do changed_charts+=("$line"); done <<< "$changed_charts_from_git"
     fi
 }
 
@@ -88,7 +87,7 @@ filter_charts() {
     done
 }
 
-lookup_changed_charts() {
+lookup_changed_charts_from_git() {
     local commit="$1"
 
     local changed_files
@@ -109,18 +108,19 @@ package_chart() {
 
 extract_release_name() {
     local chartFile="$1"
-    echo "$chartFile" | cut -d'.' -f1
+    echo "${chartFile%.*}"
 }
 
 release_charts() {
     echo 'Releasing charts...'
-    for chart in `ls .helm-release-packages`
+    cd .helm-release-packages
+    for chart in `ls`
     do
       echo "releasing chart $chart"
-      curl --data-binary "@.helm-release-packages/$chart" $charts_repo_url
+      curl --data-binary "@$chart" $charts_repo_url
       releaseName=$(extract_release_name $chart)
       echo "Creating GithubRelease $releaseName"
-      hub release -m "$releaseName" $releaseName
+      hub release create -m "$releaseName" $releaseName
     done
 }
 
