@@ -1,0 +1,14 @@
+name: 'Happn Chart Semver Rule Enforcer'
+description: 'GitHub Action for validating than chart version was changed'
+
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+        bash $GITHUB_ACTION_PATH/entrypoint.sh
+      id: changed-files
+      shell: bash
+      env:
+        GITHUB_SERVER_URL: ${{ github.server_url }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_BASE_REF: ${{ github.base_ref }}
