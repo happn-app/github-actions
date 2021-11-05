@@ -41,24 +41,42 @@ fi
 
 chart_not_updated=()
 
+search_up_chart() {
+    echo "Checking file $1" 1>&2
+    local look=${1%/*}
+    
+    while [[ -n $look ]]; do
+        [[ -f "$look/Chart.yaml" ]] && {
+            printf '%s\n' "$look/Chart.yaml"
+            return
+        }
+        if [[ $look =~ "/" ]]; then
+          look=${look%/*}
+        else
+          look=""
+        fi
+    done
+}
+
 CHANGED_FILES=$(git diff --diff-filter="AM" --name-only "$PREVIOUS_SHA" "$CURRENT_SHA")
-CHANGED_DIRS=$(echo $CHANGED_FILES | rev | cut -d'/' -f2- | rev)
-for CHANGED_DIR in $(echo $CHANGED_FILES | rev | cut -d'/' -f2- | rev)
+for CHANGED_FILE in $CHANGED_FILES
 do
-  echo "Checking directory $CHANGED_DIR"
-  if [[ -f "${CHANGED_DIR}/Chart.yaml" ]]; then
-    CHART_VERSION_CHANGED=$(git diff -U0 "$PREVIOUS_SHA" "$CURRENT_SHA" "${CHANGED_DIR}/Chart.yaml" | grep -c '+version:')
+  CHANGED_CHART=$(search_up_chart $CHANGED_FILE)
+  if [[ -n "$CHANGED_CHART" ]]; then
+    echo "Checking Chart $CHANGED_CHART"
+    CHART_VERSION_CHANGED=$(git diff -U0 "${PREVIOUS_SHA}" "${CURRENT_SHA}" "${CHANGED_CHART}" | grep -c "+version:") || true
     if [[ "$CHART_VERSION_CHANGED" -gt 0 ]]; then
-      echo "Chart in $CHANGED_DIR was updated"
+      echo "Chart $CHANGED_CHART was updated"
     else
-      chart_not_updated+=("$CHANGED_DIR")
+      chart_not_updated+=("$CHANGED_CHART")
     fi
   fi
 done
-git remote remove temp_changed_files
 
+echo "not updated $chart_not_updated"
+git remote remove temp_changed_files
 if [[ -n "${chart_not_updated[*]}" ]]; then
-  echo "::warning:: Some Chart version were not updated : ${chart_not_updated[*]}"
+  echo "::warning::Some Chart version were not updated : ${chart_not_updated[*]}"
   exit 1
 else
   echo "Everything is good !"
