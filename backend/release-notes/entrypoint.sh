@@ -17,7 +17,7 @@ if [ "$CURRENT_TAG" = "$PREVIOUS_TAG" ]; then
 fi
 
 echo "Getting commits between ${PREVIOUS_TAG} and ${CURRENT_TAG}"
-CHANGELOG=$(git log --pretty=format:%s ${PREVIOUS_TAG}...${CURRENT_TAG})
+CHANGELOG=$(git log --pretty=format:%s ${PREVIOUS_TAG}..${CURRENT_TAG})
 NB_COMMITS=$(echo -n "$CHANGELOG" | wc -l)
 
 echo "Found $NB_COMMITS commits"
