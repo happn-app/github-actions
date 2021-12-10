@@ -14,7 +14,7 @@ format_for_markdown() {
   MESSAGE=$CHANGELOG
   FORMATTED_JIRA=$(echo "$MESSAGE" | sed -E 's|([A-Z]+-[0-9]+)|[\1](https://happnapp.atlassian.net/browse/\1)|g')
   
-  echo ""$FORMATTED_JIRA""
+  echo "$FORMATTED_JIRA"
 }
 format_for_slack() {
   MESSAGE=$CHANGELOG
@@ -41,7 +41,7 @@ fi
 
 echo "Getting commits between ${PREVIOUS_TAG} and ${CURRENT_TAG}"
 CHANGELOG=$(git log --pretty=format:%s ${PREVIOUS_TAG}..${CURRENT_TAG})
-NB_COMMITS=$(echo -n "$CHANGELOG" | wc -l)
+NB_COMMITS=$(echo "$CHANGELOG" | wc -l)
 
 echo "Found $NB_COMMITS commits"
 echo "$CHANGELOG"
