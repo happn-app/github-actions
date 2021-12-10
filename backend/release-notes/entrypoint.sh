@@ -19,7 +19,7 @@ format_for_markdown() {
 format_for_slack() {
   MESSAGE=$CHANGELOG
   FORMATTED_JIRA=$(echo "$MESSAGE" | sed -E 's!([A-Z]+-[0-9]+)!<https://happnapp.atlassian.net/browse/\1|\1>!g')
-  FORMATTED_PR=$(echo "$FORMATTED_JIRA" | sed -E "s!#([0-9]+)!<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/\1|#\1>!g")
+  FORMATTED_PR=$(echo "$FORMATTED_JIRA" | sed -E "s!#([0-9]+)!<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/\1|#\1>!g")
   
   echo "$FORMATTED_PR"
 }
