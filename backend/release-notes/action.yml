@@ -1,0 +1,14 @@
+name: 'Happn Release Notes'
+description: 'GitHub Action for creating backend releaseNotes'
+outputs:
+  changelog:
+    description: "Computed changelog"
+    value: ${{ steps.changelog.outputs.changelog }}
+
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+        bash $GITHUB_ACTION_PATH/entrypoint.sh
+      id: changelog
+      shell: bash
