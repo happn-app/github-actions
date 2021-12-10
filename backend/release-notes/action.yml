@@ -4,6 +4,12 @@ outputs:
   changelog:
     description: "Computed changelog"
     value: ${{ steps.changelog.outputs.changelog }}
+  changelog_slack:
+    description: "Computed changelog for slack"
+    value: ${{ steps.changelog.outputs.changelog_slack }}
+  changelog_md:
+    description: "Computed changelog for markdown"
+    value: ${{ steps.changelog.outputs.changelog_md }}
 
 runs:
   using: 'composite'
