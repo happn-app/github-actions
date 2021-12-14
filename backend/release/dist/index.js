@@ -17838,10 +17838,7 @@ function getPreviousTagOrCommit(currentTag) {
     return __awaiter(this, void 0, void 0, function* () {
         (0,core.info)("Fetching tags");
         yield git.fetch({ "--tags": null });
-        const tags = yield git.tags({
-            "--sort": '-creatordate',
-            '-l': '[0-9]*.[0-9]*',
-        });
+        const tags = yield git.tags(['[0-9]*.[0-9]*', '--sort=-creatordate']);
         const previousTags = tags.all.filter(t => t !== currentTag);
         if (previousTags.length > 0) {
             return previousTags[0];

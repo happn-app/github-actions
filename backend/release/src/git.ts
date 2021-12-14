@@ -9,10 +9,7 @@ async function getPreviousTagOrCommit(currentTag: string) {
     info("Fetching tags");
     await git.fetch({"--tags": null});
 
-    const tags = await git.tags({
-        "--sort": '-creatordate',
-        '-l': '[0-9]*.[0-9]*',
-    });
+    const tags = await git.tags(['[0-9]*.[0-9]*','--sort=-creatordate']);
 
     const previousTags = tags.all.filter(t => t !== currentTag);
     if (previousTags.length > 0) {
