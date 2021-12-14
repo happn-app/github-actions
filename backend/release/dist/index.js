@@ -17773,7 +17773,7 @@ __nccwpck_require__.r(__webpack_exports__);
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var lib_github = __nccwpck_require__(5438);
+var github = __nccwpck_require__(5438);
 // EXTERNAL MODULE: ./node_modules/simple-git/src/index.js
 var src = __nccwpck_require__(1477);
 var src_default = /*#__PURE__*/__nccwpck_require__.n(src);
@@ -17793,7 +17793,7 @@ function getJiraUrl(jiraKey) {
 }
 function getPRUrl(prId) {
     const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
-    const githubRepository = process.env.GITHUB_REPOSITORY || `${lib_github.context.repo.owner}/${lib_github.context.repo.repo}`;
+    const githubRepository = process.env.GITHUB_REPOSITORY || `${github.context.repo.owner}/${github.context.repo.repo}`;
     return `${githubUrl}/${githubRepository}/pull/${prId}`;
 }
 function makeChunks(body, size) {
@@ -17820,42 +17820,66 @@ function makeChunks(body, size) {
 }
 
 ;// CONCATENATED MODULE: ./src/git.ts
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 
 
 
 
 const git = src_default()();
-async function getPreviousTagOrCommit(currentTag) {
-    (0,core.info)("Fetching tags");
-    await git.fetch({ "--tags": null });
-    const tags = await git.tags({
-        "--sort": '-creatordate',
-        '-l': '[0-9]*.[0-9]*',
+function getPreviousTagOrCommit(currentTag) {
+    return __awaiter(this, void 0, void 0, function* () {
+        (0,core.info)("Fetching tags");
+        yield git.fetch({ "--tags": null });
+        const tags = yield git.tags({
+            "--sort": '-creatordate',
+            '-l': '[0-9]*.[0-9]*',
+        });
+        const previousTags = tags.all.filter(t => t !== currentTag);
+        if (previousTags.length > 0) {
+            return previousTags[0];
+        }
+        (0,core.info)("Did not find any previous tag, getting first commit instead");
+        return git.revparse("HEAD", { "--max-parents": 0 });
     });
-    const previousTags = tags.all.filter(t => t !== currentTag);
-    if (previousTags.length > 0) {
-        return previousTags[0];
-    }
-    (0,core.info)("Did not find any previous tag, getting first commit instead");
-    return git.revparse("HEAD", { "--max-parents": 0 });
 }
-async function getDiffMessages(currentTag, previousTag) {
-    const logs = await git.log({ from: previousTag, to: currentTag, format: "%s" });
-    return logs.all;
+function getDiffMessages(currentTag, previousTag) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const logs = yield git.log({ from: previousTag, to: currentTag, format: "%s" });
+        return logs.all;
+    });
 }
-async function getCommitMessages() {
-    (0,core.startGroup)("Fetching git informations");
-    const currentTag = extractTag(lib_github.context.ref);
-    const previousTag = await getPreviousTagOrCommit(currentTag);
-    (0,core.info)(`Fetching commit messages between ${previousTag} and ${currentTag}`);
-    const messages = await getDiffMessages(currentTag, previousTag);
-    (0,core.endGroup)();
-    return messages;
+function getCommitMessages() {
+    return __awaiter(this, void 0, void 0, function* () {
+        (0,core.startGroup)("Fetching git informations");
+        const currentTag = extractTag(github.context.ref);
+        const previousTag = yield getPreviousTagOrCommit(currentTag);
+        (0,core.info)(`Fetching commit messages between ${previousTag} and ${currentTag}`);
+        const messages = yield getDiffMessages(currentTag, previousTag);
+        (0,core.endGroup)();
+        return messages;
+    });
 }
 
 // EXTERNAL MODULE: ./node_modules/@slack/webhook/dist/index.js
 var dist = __nccwpck_require__(1095);
 ;// CONCATENATED MODULE: ./src/slack.ts
+var slack_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 
 
 
@@ -17872,14 +17896,14 @@ function getSlackChangelog(messages) {
         .join("\n");
 }
 function getUsername(config) {
-    return config.slack.username || `${lib_github.context.actor} (Bot)`;
+    return config.slack.username || `${github.context.actor} (Bot)`;
 }
 function getIconUrl(config) {
-    return config.slack.iconURL || `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${lib_github.context.actor}.png`;
+    return config.slack.iconURL || `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${github.context.actor}.png`;
 }
 function getBody(tagName, changeLog, releaseUrl) {
     const releaseName = releaseUrl ? `<${releaseUrl}|${tagName}>` : tagName;
-    return `*${lib_github.context.repo.repo} ${releaseName}* 
+    return `*${github.context.repo.repo} ${releaseName}* 
     ${changeLog}
     `;
 }
@@ -17892,22 +17916,24 @@ function getSlackMessage(config, tagName, changeLog, releaseUrl) {
         text: getBody(tagName, changeLog, releaseUrl)
     };
 }
-async function sendSlackMessage(config, tagName, changeLog, releaseUrl) {
-    if (!config.slack.enabled) {
-        (0,core.info)("Slack disabled");
-        return;
-    }
-    (0,core.startGroup)("💌 Sending Slack message");
-    const message = getSlackMessage(config, tagName, changeLog, releaseUrl);
-    if (config.dryRun) {
-        (0,core.info)(`[DRYRUN] Send slack message:
+function sendSlackMessage(config, tagName, changeLog, releaseUrl) {
+    return slack_awaiter(this, void 0, void 0, function* () {
+        if (!config.slack.enabled) {
+            (0,core.info)("Slack disabled");
+            return;
+        }
+        (0,core.startGroup)("💌 Sending Slack message");
+        const message = getSlackMessage(config, tagName, changeLog, releaseUrl);
+        if (config.dryRun) {
+            (0,core.info)(`[DRYRUN] Send slack message:
     ${JSON.stringify(message, null, 2)}
     `);
-        return;
-    }
-    const result = await webhook.send(message);
-    (0,core.endGroup)();
-    return result;
+            return;
+        }
+        const result = yield webhook.send(message);
+        (0,core.endGroup)();
+        return result;
+    });
 }
 
 ;// CONCATENATED MODULE: ./src/outputs.ts
@@ -17923,6 +17949,15 @@ function setChangeLogMd(changelog) {
 }
 
 ;// CONCATENATED MODULE: ./src/github.ts
+var github_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 
 
 
@@ -17947,7 +17982,6 @@ class DryRunReleaser {
     }
 }
 class GitHubReleaser {
-    github;
     constructor(github) {
         this.github = github;
     }
@@ -17964,36 +17998,38 @@ function getMdChangelog(messages) {
         .map(replaceGithubPr)
         .join("\n");
 }
-async function createRelease(config, tagName, changelog) {
-    if (!config.github.enabled) {
-        (0,core.info)("Github release disabled");
-        return;
-    }
-    (0,core.startGroup)("🚀 Create Github Release");
-    const releaser = config.dryRun ? new DryRunReleaser()
-        : new GitHubReleaser((0,lib_github.getOctokit)(process.env.GITHUB_TOKEN || "", {
-            log: {
-                error: core.error,
-                info: core.info,
-                warn: core.warning,
-                debug: core.debug
-            }
-        }));
-    const releaseData = await releaser.createRelease({
-        owner: lib_github.context.repo.owner,
-        repo: lib_github.context.repo.repo,
-        tag_name: tagName,
-        name: tagName,
-        body: changelog,
-        draft: false,
-        prerelease: false,
-        generate_release_notes: false,
-        discussion_category_name: undefined,
-        target_commitish: undefined
+function createRelease(config, tagName, changelog) {
+    return github_awaiter(this, void 0, void 0, function* () {
+        if (!config.github.enabled) {
+            (0,core.info)("Github release disabled");
+            return;
+        }
+        (0,core.startGroup)("🚀 Create Github Release");
+        const releaser = config.dryRun ? new DryRunReleaser()
+            : new GitHubReleaser((0,github.getOctokit)(process.env.GITHUB_TOKEN || "", {
+                log: {
+                    error: core.error,
+                    info: core.info,
+                    warn: core.warning,
+                    debug: core.debug
+                }
+            }));
+        const releaseData = yield releaser.createRelease({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            tag_name: tagName,
+            name: tagName,
+            body: changelog,
+            draft: false,
+            prerelease: false,
+            generate_release_notes: false,
+            discussion_category_name: undefined,
+            target_commitish: undefined
+        });
+        (0,core.info)(`Created release ${tagName}`);
+        (0,core.endGroup)();
+        return releaseData.data;
     });
-    (0,core.info)(`Created release ${tagName}`);
-    (0,core.endGroup)();
-    return releaseData.data;
 }
 
 ;// CONCATENATED MODULE: ./src/inputs.ts
@@ -18036,6 +18072,15 @@ function parseInputs() {
 }
 
 ;// CONCATENATED MODULE: ./src/index.ts
+var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 
 
 
@@ -18044,19 +18089,21 @@ function parseInputs() {
 
 
 
-async function run(ctx) {
-    let config = parseInputs();
-    const messages = await getCommitMessages();
-    setChangeLog(messages.join("\n"));
-    const slackChangelog = getSlackChangelog(messages);
-    setChangeLogSlack(slackChangelog);
-    const mdChangelog = getMdChangelog(messages);
-    setChangeLogMd(mdChangelog);
-    const tagName = extractTag(ctx.ref);
-    const release = await createRelease(config, tagName, mdChangelog);
-    sendSlackMessage(config, tagName, slackChangelog, release?.html_url);
+function run(ctx) {
+    return src_awaiter(this, void 0, void 0, function* () {
+        let config = parseInputs();
+        const messages = yield getCommitMessages();
+        setChangeLog(messages.join("\n"));
+        const slackChangelog = getSlackChangelog(messages);
+        setChangeLogSlack(slackChangelog);
+        const mdChangelog = getMdChangelog(messages);
+        setChangeLogMd(mdChangelog);
+        const tagName = extractTag(ctx.ref);
+        const release = yield createRelease(config, tagName, mdChangelog);
+        sendSlackMessage(config, tagName, slackChangelog, release === null || release === void 0 ? void 0 : release.html_url);
+    });
 }
-run(lib_github.context).catch(error => {
+run(github.context).catch(error => {
     (0,core.setFailed)(error.toString());
     if (process.env.GITHUB_ACTIONS == undefined) {
         console.error(error.stack);
