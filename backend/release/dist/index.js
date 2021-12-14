@@ -17990,7 +17990,7 @@ function getMdChangelog(messages) {
     const replaceJira = (text) => text.replace(/([A-Z]+-[0-9]+)/g, `[$1](${getJiraUrl("$1")})`);
     const replaceGithubPr = (text) => text.replace(/#([0-9]+)/g, `[#$1](${getPRUrl("$1")})`);
     return messages
-        .map(m => '*️ ' + m)
+        .map(m => '-️ ' + m)
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");

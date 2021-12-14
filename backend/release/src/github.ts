@@ -102,7 +102,7 @@ export function getMdChangelog(messages: string[]): string {
             `[#$1](${getPRUrl("$1")})`
         )
     return messages
-        .map(m => '*️ ' + m)
+        .map(m => '-️ ' + m)
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");
