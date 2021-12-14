@@ -36,9 +36,7 @@ function getIconUrl(config: ActionConfig) {
 
 function getBody(tagName: string, changeLog: string, releaseUrl: string | undefined) {
     const releaseName = releaseUrl ? `<${releaseUrl}|${tagName}>` : tagName;
-    return `*${context.repo.repo} ${releaseName}* 
-    ${changeLog}
-    `;
+    return `*${context.repo.repo} ${releaseName}*\n${changeLog}`;
 }
 
 function getSlackMessage(config: ActionConfig, tagName: string, changeLog: string, releaseUrl: string | undefined): IncomingWebhookSendArguments {

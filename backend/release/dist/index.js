@@ -17860,6 +17860,7 @@ function getCommitMessages() {
         const previousTag = yield getPreviousTagOrCommit(currentTag);
         core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
         const messages = yield getDiffMessages(currentTag, previousTag);
+        core.info(`Found ${messages.length} commits`);
         core.endGroup();
         return messages;
     });
@@ -17900,9 +17901,7 @@ function getIconUrl(config) {
 }
 function getBody(tagName, changeLog, releaseUrl) {
     const releaseName = releaseUrl ? `<${releaseUrl}|${tagName}>` : tagName;
-    return `*${github.context.repo.repo} ${releaseName}* 
-    ${changeLog}
-    `;
+    return `*${github.context.repo.repo} ${releaseName}*\n${changeLog}`;
 }
 function getSlackMessage(config, tagName, changeLog, releaseUrl) {
     return {

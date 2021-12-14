@@ -34,6 +34,7 @@ export async function getCommitMessages(): Promise<string[]> {
     core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
     const messages = await getDiffMessages(currentTag, previousTag);
     
+    core.info(`Found ${messages.length} commits`);
     core.endGroup();
     return messages;
 }
