@@ -20,7 +20,7 @@ export function getSlackChangelog(messages: string[]): string {
             `<${getPRUrl("$1")}|#$1>`
         )
     return messages
-        .map(m => '⚫️ ' + m)
+        .map(m => '• ' + m)
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");

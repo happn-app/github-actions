@@ -17836,31 +17836,31 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 const git = src_default()();
 function getPreviousTagOrCommit(currentTag) {
     return __awaiter(this, void 0, void 0, function* () {
-        (0,core.info)("Fetching tags");
+        core.info("Fetching tags");
         yield git.fetch({ "--tags": null });
         const tags = yield git.tags(['[0-9]*.[0-9]*', '--sort=-creatordate']);
         const previousTags = tags.all.filter(t => t !== currentTag);
         if (previousTags.length > 0) {
             return previousTags[0];
         }
-        (0,core.info)("Did not find any previous tag, getting first commit instead");
+        core.info("Did not find any previous tag, getting first commit instead");
         return git.revparse("HEAD", { "--max-parents": 0 });
     });
 }
 function getDiffMessages(currentTag, previousTag) {
     return __awaiter(this, void 0, void 0, function* () {
-        const logs = yield git.log({ from: previousTag, to: currentTag, format: "%s" });
-        return logs.all;
+        const logs = yield git.log({ from: previousTag, to: currentTag, format: { message: "%s" }, symmetric: false });
+        return logs.all.map(m => m.message);
     });
 }
 function getCommitMessages() {
     return __awaiter(this, void 0, void 0, function* () {
-        (0,core.startGroup)("Fetching git informations");
+        core.startGroup("Fetching git informations");
         const currentTag = extractTag(github.context.ref);
         const previousTag = yield getPreviousTagOrCommit(currentTag);
-        (0,core.info)(`Fetching commit messages between ${previousTag} and ${currentTag}`);
+        core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
         const messages = yield getDiffMessages(currentTag, previousTag);
-        (0,core.endGroup)();
+        core.endGroup();
         return messages;
     });
 }
@@ -17887,7 +17887,7 @@ function getSlackChangelog(messages) {
     const replaceJira = (text) => text.replace(/([A-Z]+-[0-9]+)/g, `<${getJiraUrl("$1")}|$1>`);
     const replaceGithubPr = (text) => text.replace(/#([0-9]+)/g, `<${getPRUrl("$1")}|#$1>`);
     return messages
-        .map(m => '⚫️ ' + m)
+        .map(m => '• ' + m)
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");
@@ -17960,7 +17960,7 @@ var github_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _a
 
 class DryRunReleaser {
     createRelease(params) {
-        (0,core.info)(`[DRYRUN] Create Release ${params.tag_name} on ${params.owner}/${params.repo} with params:
+        core.info(`[DRYRUN] Create Release ${params.tag_name} on ${params.owner}/${params.repo} with params:
             ${JSON.stringify(params, null, 2)}
         `);
         return Promise.resolve({
@@ -17998,10 +17998,10 @@ function getMdChangelog(messages) {
 function createRelease(config, tagName, changelog) {
     return github_awaiter(this, void 0, void 0, function* () {
         if (!config.github.enabled) {
-            (0,core.info)("Github release disabled");
+            core.info("Github release disabled");
             return;
         }
-        (0,core.startGroup)("🚀 Create Github Release");
+        core.startGroup("🚀 Create Github Release");
         const releaser = config.dryRun ? new DryRunReleaser()
             : new GitHubReleaser((0,github.getOctokit)(process.env.GITHUB_TOKEN || "", {
                 log: {
@@ -18023,8 +18023,8 @@ function createRelease(config, tagName, changelog) {
             discussion_category_name: undefined,
             target_commitish: undefined
         });
-        (0,core.info)(`Created release ${tagName}`);
-        (0,core.endGroup)();
+        core.info(`Created release ${tagName}`);
+        core.endGroup();
         return releaseData.data;
     });
 }

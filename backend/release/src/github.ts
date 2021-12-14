@@ -1,6 +1,6 @@
 import { GitHub } from "@actions/github/lib/utils";
 import { context, getOctokit } from "@actions/github";
-import { debug, endGroup, error, info, startGroup, warning } from "@actions/core";
+import * as core from "@actions/core";
 import { getJiraUrl, getPRUrl } from "./utils";
 import { ActionConfig } from "./inputs";
 
@@ -48,7 +48,7 @@ class DryRunReleaser implements Releaser {
         discussion_category_name: string | undefined;
         generate_release_notes: boolean | undefined;
     }): Promise<{ data: Release }> {
-        info(`[DRYRUN] Create Release ${params.tag_name} on ${params.owner}/${params.repo} with params:
+        core.info(`[DRYRUN] Create Release ${params.tag_name} on ${params.owner}/${params.repo} with params:
             ${JSON.stringify(params, null, 2)}
         `);
         return Promise.resolve({
@@ -110,17 +110,17 @@ export function getMdChangelog(messages: string[]): string {
 
 export async function createRelease(config: ActionConfig, tagName: string, changelog: string): Promise<Release | void> {
     if (!config.github.enabled) {
-        info("Github release disabled");
+        core.info("Github release disabled");
         return;
     }
-    startGroup("🚀 Create Github Release");
+    core.startGroup("🚀 Create Github Release");
     const releaser = config.dryRun ? new DryRunReleaser()
         : new GitHubReleaser(getOctokit(process.env.GITHUB_TOKEN || "", {
             log: {
-                error: error,
-                info: info,
-                warn: warning,
-                debug: debug
+                error: core.error,
+                info: core.info,
+                warn: core.warning,
+                debug: core.debug
             }
         }));
     const releaseData = await releaser.createRelease({
@@ -135,7 +135,8 @@ export async function createRelease(config: ActionConfig, tagName: string, chang
         discussion_category_name: undefined,
         target_commitish: undefined
     });
-    info(`Created release ${tagName}`);
-    endGroup();
+    core.info(`Created release ${tagName}`);
+    
+    core.endGroup();
     return releaseData.data;
 }
