@@ -17799,28 +17799,6 @@ function getPRUrl(prId) {
     const githubRepository = process.env.GITHUB_REPOSITORY || `${github.context.repo.owner}/${github.context.repo.repo}`;
     return `${githubUrl}/${githubRepository}/pull/${prId}`;
 }
-function makeChunks(body, size) {
-    let chunks = [];
-    if (body.length < size) {
-        return [body];
-    }
-    const lines = body.split('\n');
-    let chunk = [];
-    let chunkSize = 0;
-    lines.forEach((line) => {
-        if (chunkSize + line.length >= size) {
-            chunks.push(chunk.join('\n'));
-            chunk = [];
-            chunkSize = 0;
-        }
-        chunk.push(line);
-        chunkSize += line.length + '\n'.length;
-    });
-    if (chunk.length > 0) {
-        chunks.push(chunk.join('\n'));
-    }
-    return chunks;
-}
 
 ;// CONCATENATED MODULE: ./src/git.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
