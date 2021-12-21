@@ -14,6 +14,10 @@ export function getJiraUrl(jiraKey: string): string {
     return `https://happnapp.atlassian.net/browse/${jiraKey}`;
 }
 
+export function getCveUrl(cveKey: string): string {
+    return `https://cve.mitre.org/cgi-bin/cvename.cgi?name=${cveKey}`;
+}
+
 
 export function getPRUrl(prId: string): string {
     const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';

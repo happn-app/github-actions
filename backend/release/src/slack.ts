@@ -1,5 +1,5 @@
 import { IncomingWebhook } from '@slack/webhook'
-import { getJiraUrl, getPRUrl } from "./utils";
+import { getCveUrl, getJiraUrl, getPRUrl } from "./utils";
 import { endGroup, info, startGroup } from "@actions/core";
 import { IncomingWebhookSendArguments } from "@slack/webhook/dist/IncomingWebhook";
 import { ActionConfig } from "./inputs";
@@ -11,9 +11,16 @@ const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK_URL);
 export function getSlackChangelog(messages: string[]): string {
     const replaceJira = (text: string): string =>
         text.replace(
-            /([A-Z]+-[0-9]+)/g,
+            /([A-Z]+-[0-9]+(?![0-9-]))/g,
             `<${getJiraUrl("$1")}|$1>`
         )
+
+    const replaceCVE = (text: string): string =>
+        text.replace(
+            /(CVE-[0-9]+-[0-9]+(?![0-9-]))/g,
+            `<(${getCveUrl("$1")}|$1>`
+        )
+
     const replaceGithubPr = (text: string): string =>
         text.replace(
             /#([0-9]+)/g,
@@ -22,6 +29,7 @@ export function getSlackChangelog(messages: string[]): string {
     return messages
         .map(m => '• ' + m)
         .map(replaceJira)
+        .map(replaceCVE)
         .map(replaceGithubPr)
         .join("\n");
 }

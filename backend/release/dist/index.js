@@ -17791,6 +17791,9 @@ function extractTag(ref) {
 function getJiraUrl(jiraKey) {
     return `https://happnapp.atlassian.net/browse/${jiraKey}`;
 }
+function getCveUrl(cveKey) {
+    return `https://cve.mitre.org/cgi-bin/cvename.cgi?name=${cveKey}`;
+}
 function getPRUrl(prId) {
     const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
     const githubRepository = process.env.GITHUB_REPOSITORY || `${github.context.repo.owner}/${github.context.repo.repo}`;
@@ -17885,11 +17888,13 @@ var slack_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _ar
 // @ts-ignore
 const webhook = new dist/* IncomingWebhook */.QU(process.env.SLACK_WEBHOOK_URL);
 function getSlackChangelog(messages) {
-    const replaceJira = (text) => text.replace(/([A-Z]+-[0-9]+)/g, `<${getJiraUrl("$1")}|$1>`);
+    const replaceJira = (text) => text.replace(/([A-Z]+-[0-9]+(?![0-9-]))/g, `<${getJiraUrl("$1")}|$1>`);
+    const replaceCVE = (text) => text.replace(/(CVE-[0-9]+-[0-9]+(?![0-9-]))/g, `<(${getCveUrl("$1")}|$1>`);
     const replaceGithubPr = (text) => text.replace(/#([0-9]+)/g, `<${getPRUrl("$1")}|#$1>`);
     return messages
         .map(m => '• ' + m)
         .map(replaceJira)
+        .map(replaceCVE)
         .map(replaceGithubPr)
         .join("\n");
 }
@@ -17986,7 +17991,7 @@ class GitHubReleaser {
     }
 }
 function getMdChangelog(messages) {
-    const replaceJira = (text) => text.replace(/([A-Z]+-[0-9]+)/g, `[$1](${getJiraUrl("$1")})`);
+    const replaceJira = (text) => text.replace(/([A-Z]+-[0-9]+(?![0-9-]))/g, `[$1](${getJiraUrl("$1")})`);
     const replaceGithubPr = (text) => text.replace(/#([0-9]+)/g, `[#$1](${getPRUrl("$1")})`);
     return messages
         .map(m => '-️ ' + m)

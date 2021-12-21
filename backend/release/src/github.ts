@@ -93,9 +93,10 @@ class GitHubReleaser implements Releaser {
 export function getMdChangelog(messages: string[]): string {
     const replaceJira = (text: string): string =>
         text.replace(
-            /([A-Z]+-[0-9]+)/g,
+            /([A-Z]+-[0-9]+(?![0-9-]))/g,
             `[$1](${getJiraUrl("$1")})`
         )
+
     const replaceGithubPr = (text: string): string =>
         text.replace(
             /#([0-9]+)/g,
@@ -136,7 +137,7 @@ export async function createRelease(config: ActionConfig, tagName: string, chang
         target_commitish: undefined
     });
     core.info(`Created release ${tagName}`);
-    
+
     core.endGroup();
     return releaseData.data;
 }
