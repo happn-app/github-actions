@@ -1,0 +1,48 @@
+name: 'Backend Release Action'
+description: 'Publishes a release on github & slack'
+branding:
+  icon: message-circle
+  color: blue
+outputs:
+  changelog:
+    description: "Computed changelog"
+  changelog_slack:
+    description: "Computed changelog for slack"
+  changelog_md:
+    description: "Computed changelog for markdown"
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+inputs:
+  dry_run:
+    description: 'Enable creation of a GH release'
+    required: false
+    default: 'false'
+    
+  enable_github_release:
+    description: 'Enable creation of a GH release'
+    required: false
+    default: 'true'
+
+  enable_slack_message:
+    description: 'Enable slack message'
+    required: false
+    default: 'true'
+
+  channel:
+    description: 'Name of a slack channel (ex: general) or a channel identifier'
+    required: false
+    default: "preprod"
+
+  username:
+    description: 'Customize the name of the bot - default is github user.'
+    required: false
+
+  icon_emoji:
+    description: 'Customize an avatar by using an emoji.'
+    required: false
+
+  icon_url:
+    description: 'Customize bot avatar by providing an URL to image.'
+    required: false
