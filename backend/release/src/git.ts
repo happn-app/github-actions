@@ -33,8 +33,11 @@ export async function getCommitMessages(): Promise<string[]> {
 
     core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
     const messages = await getDiffMessages(currentTag, previousTag);
-    
     core.info(`Found ${messages.length} commits`);
+
+    core.info(`Stripping ci skip tags`);
+    const messagesStripped = messages.map(m => m.replace("[happn-ci-skip]", ""));
     core.endGroup();
-    return messages;
+
+    return messagesStripped;
 }
