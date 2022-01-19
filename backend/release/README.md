@@ -45,6 +45,7 @@ jobs:
 | `dry_run` | Boolean | Optional | Only log |
 | `enable_github_release` | Boolean | Optional | Create a GH release (default: true) |
 | `enable_slack_message` | Boolean | Optional | Send a message to slack (default: true) |
+| `tag_pattern` | String | Optional | Custom tag pattern to fetch diff (default: "[0-9]*.[0-9]*") |
 | `channel` | String | Optional | Slack channel to post message (default: preprod) |
 | `username` | String | Optional | Slack username to use (default: github actor) |
 | `icon_emoji` | String | Optional | Customize an avatar by using an emoji. (default: null) |

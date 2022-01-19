@@ -17815,11 +17815,11 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 const git = src_default()();
-function getPreviousTagOrCommit(currentTag) {
+function getPreviousTagOrCommit(currentTag, config) {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Fetching tags");
         yield git.fetch({ "--tags": null });
-        const tags = yield git.tags(['[0-9]*.[0-9]*', '--sort=-creatordate']);
+        const tags = yield git.tags([config.tagPattern, '--sort=-creatordate']);
         const previousTags = tags.all.filter(t => t !== currentTag);
         if (previousTags.length > 0) {
             return previousTags[0];
@@ -17834,11 +17834,11 @@ function getDiffMessages(currentTag, previousTag) {
         return logs.all.map(m => m.message);
     });
 }
-function getCommitMessages() {
+function getCommitMessages(config) {
     return __awaiter(this, void 0, void 0, function* () {
         core.startGroup("Fetching git informations");
         const currentTag = extractTag(github.context.ref);
-        const previousTag = yield getPreviousTagOrCommit(currentTag);
+        const previousTag = yield getPreviousTagOrCommit(currentTag, config);
         core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
         const messages = yield getDiffMessages(currentTag, previousTag);
         core.info(`Found ${messages.length} commits`);
@@ -18018,6 +18018,7 @@ function createRelease(config, tagName, changelog) {
 const inputDryRun = 'dry_run';
 const inputEnableGhRelease = 'enable_github_release';
 const inputEnableSlack = 'enable_slack_message';
+const inputTagPattern = 'tag_pattern';
 const inputChannel = 'channel';
 const inputUsername = 'username';
 const inputIconEmoji = 'icon_emoji';
@@ -18038,6 +18039,7 @@ function getBoolean(key, defaultValue) {
 }
 function parseInputs() {
     return {
+        tagPattern: getString(inputTagPattern, "[0-9]*.[0-9]*"),
         dryRun: getBoolean(inputDryRun, false),
         github: {
             enabled: getBoolean(inputEnableGhRelease, true)
@@ -18073,7 +18075,7 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
 function run(ctx) {
     return src_awaiter(this, void 0, void 0, function* () {
         let config = parseInputs();
-        const messages = yield getCommitMessages();
+        const messages = yield getCommitMessages(config);
         setChangeLog(messages.join("\n"));
         const slackChangelog = getSlackChangelog(messages);
         setChangeLogSlack(slackChangelog);
