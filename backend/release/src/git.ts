@@ -6,6 +6,12 @@ import { ActionConfig } from "./inputs";
 
 const git: SimpleGit = simpleGit();
 
+export interface GitCommitsResponse {
+    from: string,
+    to: string,
+    messages: string[]
+}
+
 async function getPreviousTagOrCommit(currentTag: string, config: ActionConfig) {
     core.info("Fetching tags");
     await git.fetch({"--tags": null});
@@ -18,7 +24,7 @@ async function getPreviousTagOrCommit(currentTag: string, config: ActionConfig) 
     }
 
     core.info("Did not find any previous tag, getting first commit instead");
-    return git.revparse("HEAD", {"--max-parents": 0});
+    return git.revparse("HEAD");
 }
 
 async function getDiffMessages(currentTag: string, previousTag: string): Promise<string[]> {
@@ -26,7 +32,7 @@ async function getDiffMessages(currentTag: string, previousTag: string): Promise
     return logs.all.map(m => m.message) as (string[]);
 }
 
-export async function getCommitMessages(config: ActionConfig): Promise<string[]> {
+export async function getCommitMessages(config: ActionConfig): Promise<GitCommitsResponse> {
     core.startGroup("Fetching git informations");
 
     const currentTag = extractTag(context.ref);
@@ -40,5 +46,9 @@ export async function getCommitMessages(config: ActionConfig): Promise<string[]>
     const messagesStripped = messages.map(m => m.replace("[happn-ci-skip]", ""));
     core.endGroup();
 
-    return messagesStripped;
+    return {
+        from: previousTag,
+        to: currentTag,
+        messages: messagesStripped
+    };
 }

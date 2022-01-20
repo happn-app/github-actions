@@ -4,11 +4,12 @@ import { endGroup, info, startGroup } from "@actions/core";
 import { IncomingWebhookSendArguments } from "@slack/webhook/dist/IncomingWebhook";
 import { ActionConfig } from "./inputs";
 import { context } from "@actions/github";
+import { GitCommitsResponse } from "./git";
 
 // @ts-ignore
 const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK_URL);
 
-export function getSlackChangelog(messages: string[]): string {
+export function getSlackChangelog(gitCommits: GitCommitsResponse): string {
     const replaceJira = (text: string): string =>
         text.replace(
             /([A-Z]+-[0-9]+(?![0-9-]))/g,
@@ -26,7 +27,7 @@ export function getSlackChangelog(messages: string[]): string {
             /#([0-9]+)/g,
             `<${getPRUrl("$1")}|#$1>`
         )
-    return messages
+    return gitCommits.messages
         .map(m => '• ' + m)
         .map(replaceJira)
         .map(replaceCVE)

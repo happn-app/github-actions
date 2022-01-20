@@ -1,8 +1,9 @@
 import { GitHub } from "@actions/github/lib/utils";
 import { context, getOctokit } from "@actions/github";
 import * as core from "@actions/core";
-import { getJiraUrl, getPRUrl } from "./utils";
+import { getDiffUrl, getJiraUrl, getPRUrl } from "./utils";
 import { ActionConfig } from "./inputs";
+import { GitCommitsResponse } from "./git";
 
 type GitHub = InstanceType<typeof GitHub>;
 
@@ -90,7 +91,7 @@ class GitHubReleaser implements Releaser {
     }
 }
 
-export function getMdChangelog(messages: string[]): string {
+export function getMdChangelog(gitCommits: GitCommitsResponse): string {
     const replaceJira = (text: string): string =>
         text.replace(
             /([A-Z]+-[0-9]+(?![0-9-]))/g,
@@ -102,11 +103,16 @@ export function getMdChangelog(messages: string[]): string {
             /#([0-9]+)/g,
             `[#$1](${getPRUrl("$1")})`
         )
-    return messages
+     const commitMessages = gitCommits.messages
         .map(m => '-️ ' + m)
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");
+    
+    return `${commitMessages}
+    
+    [Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})
+    `;
 }
 
 export async function createRelease(config: ActionConfig, tagName: string, changelog: string): Promise<Release | void> {

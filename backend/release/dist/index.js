@@ -17799,6 +17799,11 @@ function getPRUrl(prId) {
     const githubRepository = process.env.GITHUB_REPOSITORY || `${github.context.repo.owner}/${github.context.repo.repo}`;
     return `${githubUrl}/${githubRepository}/pull/${prId}`;
 }
+function getDiffUrl(from, to) {
+    const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
+    const githubRepository = process.env.GITHUB_REPOSITORY || `${github.context.repo.owner}/${github.context.repo.repo}`;
+    return `${githubUrl}/${githubRepository}/compare/${from}...${to}`;
+}
 
 ;// CONCATENATED MODULE: ./src/git.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -17825,7 +17830,7 @@ function getPreviousTagOrCommit(currentTag, config) {
             return previousTags[0];
         }
         core.info("Did not find any previous tag, getting first commit instead");
-        return git.revparse("HEAD", { "--max-parents": 0 });
+        return git.revparse("HEAD");
     });
 }
 function getDiffMessages(currentTag, previousTag) {
@@ -17845,7 +17850,11 @@ function getCommitMessages(config) {
         core.info(`Stripping ci skip tags`);
         const messagesStripped = messages.map(m => m.replace("[happn-ci-skip]", ""));
         core.endGroup();
-        return messagesStripped;
+        return {
+            from: previousTag,
+            to: currentTag,
+            messages: messagesStripped
+        };
     });
 }
 
@@ -17867,11 +17876,11 @@ var slack_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _ar
 
 // @ts-ignore
 const webhook = new dist/* IncomingWebhook */.QU(process.env.SLACK_WEBHOOK_URL);
-function getSlackChangelog(messages) {
+function getSlackChangelog(gitCommits) {
     const replaceJira = (text) => text.replace(/([A-Z]+-[0-9]+(?![0-9-]))/g, `<${getJiraUrl("$1")}|$1>`);
     const replaceCVE = (text) => text.replace(/(CVE-[0-9]+-[0-9]+(?![0-9-]))/g, `<(${getCveUrl("$1")}|$1>`);
     const replaceGithubPr = (text) => text.replace(/#([0-9]+)/g, `<${getPRUrl("$1")}|#$1>`);
-    return messages
+    return gitCommits.messages
         .map(m => '• ' + m)
         .map(replaceJira)
         .map(replaceCVE)
@@ -17970,14 +17979,18 @@ class GitHubReleaser {
         return this.github.rest.repos.createRelease(params);
     }
 }
-function getMdChangelog(messages) {
+function getMdChangelog(gitCommits) {
     const replaceJira = (text) => text.replace(/([A-Z]+-[0-9]+(?![0-9-]))/g, `[$1](${getJiraUrl("$1")})`);
     const replaceGithubPr = (text) => text.replace(/#([0-9]+)/g, `[#$1](${getPRUrl("$1")})`);
-    return messages
+    const commitMessages = gitCommits.messages
         .map(m => '-️ ' + m)
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");
+    return `${commitMessages}
+    
+    [Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})
+    `;
 }
 function createRelease(config, tagName, changelog) {
     return github_awaiter(this, void 0, void 0, function* () {
@@ -18075,11 +18088,11 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
 function run(ctx) {
     return src_awaiter(this, void 0, void 0, function* () {
         let config = parseInputs();
-        const messages = yield getCommitMessages(config);
-        setChangeLog(messages.join("\n"));
-        const slackChangelog = getSlackChangelog(messages);
+        const gitCommitsResponse = yield getCommitMessages(config);
+        setChangeLog(gitCommitsResponse.messages.join("\n"));
+        const slackChangelog = getSlackChangelog(gitCommitsResponse);
         setChangeLogSlack(slackChangelog);
-        const mdChangelog = getMdChangelog(messages);
+        const mdChangelog = getMdChangelog(gitCommitsResponse);
         setChangeLogMd(mdChangelog);
         const tagName = extractTag(ctx.ref);
         const release = yield createRelease(config, tagName, mdChangelog);

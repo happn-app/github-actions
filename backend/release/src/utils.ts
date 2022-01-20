@@ -24,3 +24,8 @@ export function getPRUrl(prId: string): string {
     const githubRepository = process.env.GITHUB_REPOSITORY || `${context.repo.owner}/${context.repo.repo}`;
     return `${githubUrl}/${githubRepository}/pull/${prId}`;
 }
+export function getDiffUrl(from: string, to:string): string {
+    const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
+    const githubRepository = process.env.GITHUB_REPOSITORY || `${context.repo.owner}/${context.repo.repo}`;
+    return `${githubUrl}/${githubRepository}/compare/${from}...${to}`;
+}
