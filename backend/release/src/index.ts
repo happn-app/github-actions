@@ -10,7 +10,7 @@ import { parseInputs } from "./inputs";
 
 async function run(ctx: Context): Promise<void> {
     let config = parseInputs();
-    const messages = await getCommitMessages();
+    const messages = await getCommitMessages(config);
 
     setChangeLog(messages.join("\n"));
 

@@ -30,6 +30,11 @@ inputs:
     required: false
     default: 'true'
 
+  tag_pattern:
+    description: 'Tag pattern of releases'
+    required: false
+    default: "[0-9]*.[0-9]*"
+    
   channel:
     description: 'Name of a slack channel (ex: general) or a channel identifier'
     required: false
