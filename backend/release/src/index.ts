@@ -10,14 +10,14 @@ import { parseInputs } from "./inputs";
 
 async function run(ctx: Context): Promise<void> {
     let config = parseInputs();
-    const messages = await getCommitMessages(config);
+    const gitCommitsResponse = await getCommitMessages(config);
 
-    setChangeLog(messages.join("\n"));
+    setChangeLog(gitCommitsResponse.messages.join("\n"));
 
-    const slackChangelog = getSlackChangelog(messages);
+    const slackChangelog = getSlackChangelog(gitCommitsResponse);
     setChangeLogSlack(slackChangelog);
 
-    const mdChangelog = getMdChangelog(messages);
+    const mdChangelog = getMdChangelog(gitCommitsResponse);
     setChangeLogMd(mdChangelog);
 
     const tagName = extractTag(ctx.ref);
