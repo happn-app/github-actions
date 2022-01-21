@@ -109,10 +109,7 @@ export function getMdChangelog(gitCommits: GitCommitsResponse): string {
         .map(replaceGithubPr)
         .join("\n");
     
-    return `${commitMessages}
-    
-    [Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})
-    `;
+    return `${commitMessages}\n[Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})`;
 }
 
 export async function createRelease(config: ActionConfig, tagName: string, changelog: string): Promise<Release | void> {

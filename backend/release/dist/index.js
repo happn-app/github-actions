@@ -17987,10 +17987,7 @@ function getMdChangelog(gitCommits) {
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");
-    return `${commitMessages}
-    
-    [Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})
-    `;
+    return `${commitMessages}\n[Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})`;
 }
 function createRelease(config, tagName, changelog) {
     return github_awaiter(this, void 0, void 0, function* () {
