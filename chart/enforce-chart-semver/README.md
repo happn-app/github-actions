@@ -30,7 +30,7 @@ jobs:
 
       - name: Validate chart version was changed
         id: chart-version-updated
-        uses: happn-tech/github-actions/chart/enforce-chart-semver@chart-semver
+        uses: happn-app/github-actions/chart/enforce-chart-semver@chart-semver
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```

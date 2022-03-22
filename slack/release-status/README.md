@@ -45,7 +45,7 @@ jobs:
     steps:
       - name: Notify workflow start
         id: notify-start
-        uses: happn-tech/github-actions/slack/release-start@master
+        uses: happn-app/github-actions/slack/release-start@master
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,7 +56,7 @@ jobs:
 
       - name: Notify workflow success
         id: notify-success
-        uses: happn-tech/github-actions/slack/release-status@master
+        uses: happn-app/github-actions/slack/release-status@master
         if: ${{ success() }}
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -69,7 +69,7 @@ jobs:
 
       - name: Notify workflow cancellation
         id: notify-cancel
-        uses: happn-tech/github-actions/slack/release-status@master
+        uses: happn-app/github-actions/slack/release-status@master
         if: ${{ cancelled() }}
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -81,7 +81,7 @@ jobs:
 
       - name: Notify workflow failure
         id: notify-failure
-        uses: happn-tech/github-actions/slack/release-status@master
+        uses: happn-app/github-actions/slack/release-status@master
         if: ${{ failure() }}
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

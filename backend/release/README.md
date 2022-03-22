@@ -28,7 +28,7 @@ jobs:
 
       - name: Create Release
         id: release
-        uses: happn-tech/github-actions/backend/release@master
+        uses: happn-app/github-actions/backend/release@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

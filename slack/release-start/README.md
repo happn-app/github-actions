@@ -47,7 +47,7 @@ jobs:
 
       - name: Notify workflow start
         id: notify-start
-        uses: happn-tech/github-actions/slack/release-start@master
+        uses: happn-app/github-actions/slack/release-start@master
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

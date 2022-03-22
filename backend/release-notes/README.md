@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Changelog
         id: github_changelog
-        uses: happn-tech/github-actions/backend/release-notes@release-notes
+        uses: happn-app/github-actions/backend/release-notes@release-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

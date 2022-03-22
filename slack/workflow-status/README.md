@@ -36,7 +36,7 @@ jobs:
   release:
     steps:
       - name: Notify workflow status
-        uses: happn-tech/github-actions/slack/workflow-status@master
+        uses: happn-app/github-actions/slack/workflow-status@master
         env:
            SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

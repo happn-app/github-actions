@@ -26,7 +26,7 @@ jobs:
 
       - name: Release charts
         id: release-charts
-        uses: happn-tech/github-actions/chart/chart-releaser@master
+        uses: happn-app/github-actions/chart/chart-releaser@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

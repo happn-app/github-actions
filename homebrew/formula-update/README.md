@@ -28,17 +28,17 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run Homebrew Release
-        uses: happn-tech/actions/homebrew/homebrew-release@master
+        uses: happn-app/actions/homebrew/homebrew-release@master
         with:
           formula_template: |
             class HelloApp < Formula
               desc "Hello app"
-              homepage "https://github.com/happn-tech/hello-app"
-              url "git@github.com:happn-tech/hello-app.git",
+              homepage "https://github.com/happn-app/hello-app"
+              url "git@github.com:happn-app/hello-app.git",
                   :using => :git,
                   :revision => "{{ revision }}",
                   :tag => "{{ tag }}"
-              head "https://github.com/happn-tech/hello-app.git"
+              head "https://github.com/happn-app/hello-app.git"
               version "{{ tag }}"
 
               depends_on "go" => :build
@@ -52,7 +52,7 @@ jobs:
                 system "#{bin}/hello-app", "-h"
               end
             end
-          tap_owner: happn-tech
+          tap_owner: happn-app
           tap_repository: homebrew-public
           tap_branch: master
           tap_formula_path: Formula/hello-app.rb
