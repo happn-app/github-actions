@@ -19,7 +19,7 @@ export function getSlackChangelog(gitCommits: GitCommitsResponse): string {
     const replaceCVE = (text: string): string =>
         text.replace(
             /(CVE-[0-9]+-[0-9]+(?![0-9-]))/g,
-            `<(${getCveUrl("$1")}|$1>`
+            `<${getCveUrl("$1")}|$1>`
         )
 
     const replaceGithubPr = (text: string): string =>

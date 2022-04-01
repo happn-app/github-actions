@@ -15,7 +15,7 @@ export function getJiraUrl(jiraKey: string): string {
 }
 
 export function getCveUrl(cveKey: string): string {
-    return `https://cve.mitre.org/cgi-bin/cvename.cgi?name=${cveKey}`;
+    return `https://github.com/advisories?query=${cveKey}`;
 }
 
 
