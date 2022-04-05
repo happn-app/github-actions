@@ -1,0 +1,12 @@
+name: 'Happn Slate Docs'
+description: 'GitHub Action to build slate docs'
+inputs:
+  docs-folder:
+    description: 'Documentation folder'
+    default: "."
+    required: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    DOC_BASE_FOLDER: ${{ inputs.docs-folder }}
