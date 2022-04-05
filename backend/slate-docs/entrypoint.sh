@@ -10,6 +10,7 @@ main() {
    cd /srv/slate
    /srv/slate/slate.sh build
    cp -R /srv/slate/build/* $CUR_DIR/build/
+   chmod 777 -R $CUR_DIR/build/
 }
 
 main "$@"
