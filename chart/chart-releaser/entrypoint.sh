@@ -124,5 +124,8 @@ release_charts() {
     done
 }
 
+# Workaround https://github.com/actions/checkout/issues/766
+git config --global --add safe.directory "/github/workspace"
+
 main "$@"
 
