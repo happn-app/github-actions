@@ -117,7 +117,7 @@ release_charts() {
     for chart in `ls`
     do
       echo "releasing chart $chart"
-      curl --data-binary "@$chart" $charts_repo_url
+      curl -vvv --data-binary "@$chart" $charts_repo_url
       releaseName=$(extract_release_name $chart)
       echo "Creating GithubRelease $releaseName"
       hub release create -m "$releaseName" $releaseName
