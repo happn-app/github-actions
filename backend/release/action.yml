@@ -12,7 +12,7 @@ outputs:
     description: "Computed changelog for markdown"
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 inputs:
   dry_run:
