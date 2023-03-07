@@ -2,7 +2,7 @@ name: homebrew-release
 description: 'GitHub action to update Homebrew formulae on release.'
 author: 'happn-app'
 runs:
-  using: node12
+  using: node16
   main: 'dist/index.js'
 inputs:
   commit_message:
