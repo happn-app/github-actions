@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { context } from '@actions/github'
 import simpleGit, { SimpleGit } from 'simple-git';
-import { extractTag } from "./utils";
+import { extractTag, extractTagPrefix } from "./utils";
 import { ActionConfig } from "./inputs";
 
 const git: SimpleGit = simpleGit();
@@ -16,7 +16,9 @@ async function getPreviousTagOrCommit(currentTag: string, config: ActionConfig) 
     core.info("Fetching tags");
     await git.fetch({"--tags": null});
 
-    const tags = await git.tags([config.tagPattern,'--sort=-creatordate']);
+    const prefix = extractTagPrefix(currentTag);
+    const pattern = `${prefix}${config.tagPattern}`;
+    const tags = await git.tags([pattern, '--sort=-creatordate']);
 
     const previousTags = tags.all.filter(t => t !== currentTag);
     if (previousTags.length > 0) {

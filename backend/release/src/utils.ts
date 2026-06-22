@@ -10,6 +10,10 @@ export function extractTag(ref: string): string {
     return ref
 }
 
+export function extractTagPrefix(tag: string): string {
+    return tag.replace(/[0-9]+(\.[0-9]+)*$/, '');
+}
+
 export function getJiraUrl(jiraKey: string): string {
     return `https://happnapp.atlassian.net/browse/${jiraKey}`;
 }
