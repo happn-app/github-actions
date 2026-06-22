@@ -46,10 +46,19 @@ jobs:
 | `enable_github_release` | Boolean | Optional | Create a GH release (default: true) |
 | `enable_slack_message` | Boolean | Optional | Send a message to slack (default: true) |
 | `tag_pattern` | String | Optional | Custom tag pattern to fetch diff (default: "[0-9]*.[0-9]*") |
+| `services_dir` | String | Optional | Monorepo root directory holding services. In a monorepo, the tag prefix maps to a sub-directory here and the changelog is scoped to that service (default: "services") |
 | `channel` | String | Optional | Slack channel to post message (default: preprod) |
 | `username` | String | Optional | Slack username to use (default: github actor) |
 | `icon_emoji` | String | Optional | Customize an avatar by using an emoji. (default: null) |
 | `icon_url` | String | Optional | Customize bot avatar by providing avatar URL. (default: github actor profile picture) |
+
+### Monorepo support
+
+When a tag is prefixed (e.g. `front-api-1.102`), the prefix (`front-api`) is matched against
+a sub-directory of `services_dir` (`services/front-api`). If that directory exists, the changelog
+only includes commits that touched it, so releasing one service does not pick up commits from the
+others. Unprefixed tags (e.g. `1.102`) and prefixes without a matching directory fall back to the
+whole repository.
 
 ## Limitations
 

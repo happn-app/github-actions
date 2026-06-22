@@ -42533,6 +42533,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getCommitMessages = void 0;
 const core = __importStar(__nccwpck_require__(7484));
 const github_1 = __nccwpck_require__(3228);
+const fs = __importStar(__nccwpck_require__(9896));
 const simple_git_1 = __importDefault(__nccwpck_require__(5298));
 const utils_1 = __nccwpck_require__(1798);
 const git = (0, simple_git_1.default)();
@@ -42551,10 +42552,32 @@ function getPreviousTagOrCommit(currentTag, config) {
         return git.revparse("HEAD");
     });
 }
-function getDiffMessages(currentTag, previousTag) {
+// In a monorepo, the tag prefix (e.g. "front-api-") maps to a service directory
+// under config.servicesDir. We scope the changelog to that directory so commits
+// from other services are not picked up. Returns undefined for unprefixed tags or
+// when the directory is missing, so the changelog falls back to all commits.
+function resolveServicePath(currentTag, config) {
+    const service = (0, utils_1.extractTagPrefix)(currentTag).replace(/-$/, '');
+    if (!service) {
+        return undefined;
+    }
+    const servicePath = `${config.servicesDir}/${service}`;
+    if (!fs.existsSync(servicePath)) {
+        core.warning(`Service directory "${servicePath}" not found, changelog will include commits from the whole repository`);
+        return undefined;
+    }
+    return servicePath;
+}
+function getDiffMessages(currentTag, previousTag, servicePath) {
     return __awaiter(this, void 0, void 0, function* () {
-        const logs = yield git.log({ from: previousTag, to: currentTag, format: { message: "%s" }, symmetric: false });
-        return logs.all.map(m => m.message);
+        // Using raw rather than git.log({file}) because the latter forces --follow,
+        // which is meant for a single file and behaves inconsistently with a directory.
+        const args = ['log', '--format=%s', `${previousTag}..${currentTag}`];
+        if (servicePath) {
+            args.push('--', servicePath);
+        }
+        const output = yield git.raw(args);
+        return output.split('\n').filter(line => line.length > 0);
     });
 }
 function getCommitMessages(config) {
@@ -42562,8 +42585,12 @@ function getCommitMessages(config) {
         core.startGroup("Fetching git informations");
         const currentTag = (0, utils_1.extractTag)(github_1.context.ref);
         const previousTag = yield getPreviousTagOrCommit(currentTag, config);
+        const servicePath = resolveServicePath(currentTag, config);
+        if (servicePath) {
+            core.info(`Scoping changelog to "${servicePath}"`);
+        }
         core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
-        const messages = yield getDiffMessages(currentTag, previousTag);
+        const messages = yield getDiffMessages(currentTag, previousTag, servicePath);
         core.info(`Found ${messages.length} commits`);
         core.info(`Stripping ci skip tags`);
         const messagesStripped = messages.map(m => m.replace("[happn-ci-skip]", ""));
@@ -42758,6 +42785,7 @@ const inputDryRun = 'dry_run';
 const inputEnableGhRelease = 'enable_github_release';
 const inputEnableSlack = 'enable_slack_message';
 const inputTagPattern = 'tag_pattern';
+const inputServicesDir = 'services_dir';
 const inputChannel = 'channel';
 const inputUsername = 'username';
 const inputIconEmoji = 'icon_emoji';
@@ -42779,6 +42807,7 @@ function getBoolean(key, defaultValue) {
 function parseInputs() {
     return {
         tagPattern: getString(inputTagPattern, "[0-9]*.[0-9]*"),
+        servicesDir: getString(inputServicesDir, "services"),
         dryRun: getBoolean(inputDryRun, false),
         github: {
             enabled: getBoolean(inputEnableGhRelease, true)
