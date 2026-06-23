@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import { context } from '@actions/github'
+import * as fs from 'fs';
 import simpleGit, { SimpleGit } from 'simple-git';
 import { extractTag, extractTagPrefix } from "./utils";
 import { ActionConfig } from "./inputs";
@@ -29,9 +30,34 @@ async function getPreviousTagOrCommit(currentTag: string, config: ActionConfig) 
     return git.revparse("HEAD");
 }
 
-async function getDiffMessages(currentTag: string, previousTag: string): Promise<string[]> {
-    const logs = await git.log({from: previousTag, to: currentTag, format: { message: "%s"}, symmetric: false});
-    return logs.all.map(m => m.message) as (string[]);
+// In a monorepo, the tag prefix (e.g. "front-api-") maps to a service directory
+// under config.servicesDir. We scope the changelog to that directory so commits
+// from other services are not picked up. Returns undefined for unprefixed tags or
+// when the directory is missing, so the changelog falls back to all commits.
+function resolveServicePath(currentTag: string, config: ActionConfig): string | undefined {
+    const service = extractTagPrefix(currentTag).replace(/-$/, '');
+    if (!service) {
+        return undefined;
+    }
+
+    const servicePath = `${config.servicesDir}/${service}`;
+    if (!fs.existsSync(servicePath)) {
+        core.warning(`Service directory "${servicePath}" not found, changelog will include commits from the whole repository`);
+        return undefined;
+    }
+
+    return servicePath;
+}
+
+async function getDiffMessages(currentTag: string, previousTag: string, servicePath?: string): Promise<string[]> {
+    // Using raw rather than git.log({file}) because the latter forces --follow,
+    // which is meant for a single file and behaves inconsistently with a directory.
+    const args = ['log', '--format=%s', `${previousTag}..${currentTag}`];
+    if (servicePath) {
+        args.push('--', servicePath);
+    }
+    const output = await git.raw(args);
+    return output.split('\n').filter(line => line.length > 0);
 }
 
 export async function getCommitMessages(config: ActionConfig): Promise<GitCommitsResponse> {
@@ -40,8 +66,13 @@ export async function getCommitMessages(config: ActionConfig): Promise<GitCommit
     const currentTag = extractTag(context.ref);
     const previousTag = await getPreviousTagOrCommit(currentTag, config);
 
+    const servicePath = resolveServicePath(currentTag, config);
+    if (servicePath) {
+        core.info(`Scoping changelog to "${servicePath}"`);
+    }
+
     core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
-    const messages = await getDiffMessages(currentTag, previousTag);
+    const messages = await getDiffMessages(currentTag, previousTag, servicePath);
     core.info(`Found ${messages.length} commits`);
 
     core.info(`Stripping ci skip tags`);

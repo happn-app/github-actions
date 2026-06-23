@@ -4,6 +4,7 @@ const inputDryRun = 'dry_run'
 const inputEnableGhRelease = 'enable_github_release'
 const inputEnableSlack = 'enable_slack_message'
 const inputTagPattern = 'tag_pattern'
+const inputServicesDir = 'services_dir'
 const inputChannel = 'channel'
 const inputUsername = 'username'
 const inputIconEmoji = 'icon_emoji'
@@ -28,6 +29,7 @@ function getBoolean(key: string, defaultValue: boolean): boolean {
 export interface ActionConfig {
     dryRun: boolean,
     tagPattern: string,
+    servicesDir: string,
     github: {
         enabled: boolean
     },
@@ -44,6 +46,7 @@ export interface ActionConfig {
 export function parseInputs(): ActionConfig {
     return {
         tagPattern: getString(inputTagPattern, "[0-9]*.[0-9]*") as string,
+        servicesDir: getString(inputServicesDir, "services") as string,
         dryRun: getBoolean(inputDryRun, false),
         github: {
             enabled: getBoolean(inputEnableGhRelease, true)
