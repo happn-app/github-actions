@@ -10563,7 +10563,16 @@ RedirectableRequest.prototype._sanitizeOptions = function (options) {
   if (!options.headers) {
     options.headers = {};
   }
-  if (!isArray(options.sensitiveHeaders)) {
+  // Convert [header1, value1, header2, value2, …] to object
+  else if (Array.isArray(options.headers)) {
+    var headerList = options.headers;
+    options.headers = {};
+    for (var i = 0; i < headerList.length; i += 2) {
+      options.headers[headerList[i]] = headerList[i + 1];
+    }
+  }
+  // Ensure sensitive headers are always present
+  if (!Array.isArray(options.sensitiveHeaders)) {
     options.sensitiveHeaders = [];
   }
 
@@ -10941,10 +10950,6 @@ function isSubdomain(subdomain, domain) {
   return dot > 0 && subdomain[dot] === "." && subdomain.endsWith(domain);
 }
 
-function isArray(value) {
-  return value instanceof Array;
-}
-
 function isString(value) {
   return typeof value === "string" || value instanceof String;
 }
@@ -10962,7 +10967,7 @@ function isURL(value) {
 }
 
 function escapeRegex(regex) {
-  return regex.replace(/[\]\\/()*+?.$]/g, "\\$&");
+  return regex.replace(/[[\]\\/()*+?.^$|]/g, "\\$&");
 }
 
 // Exports
@@ -10977,8 +10982,6 @@ module.exports.wrap = wrap;
 
 "use strict";
 
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /*!
  * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
@@ -42537,7 +42540,7 @@ const fs = __importStar(__nccwpck_require__(9896));
 const simple_git_1 = __importDefault(__nccwpck_require__(5298));
 const utils_1 = __nccwpck_require__(1798);
 const git = (0, simple_git_1.default)();
-function getPreviousTagOrCommit(currentTag, config) {
+function getPreviousTag(currentTag, config) {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Fetching tags");
         yield git.fetch({ "--tags": null });
@@ -42548,8 +42551,8 @@ function getPreviousTagOrCommit(currentTag, config) {
         if (previousTags.length > 0) {
             return previousTags[0];
         }
-        core.info("Did not find any previous tag, getting first commit instead");
-        return git.revparse("HEAD");
+        core.info("Did not find any previous tag, the changelog starts from the first commit");
+        return undefined;
     });
 }
 // In a monorepo, the tag prefix (e.g. "front-api-") maps to a service directory
@@ -42572,7 +42575,7 @@ function getDiffMessages(currentTag, previousTag, servicePath) {
     return __awaiter(this, void 0, void 0, function* () {
         // Using raw rather than git.log({file}) because the latter forces --follow,
         // which is meant for a single file and behaves inconsistently with a directory.
-        const args = ['log', '--format=%s', `${previousTag}..${currentTag}`];
+        const args = ['log', '--format=%s', previousTag ? `${previousTag}..${currentTag}` : currentTag];
         if (servicePath) {
             args.push('--', servicePath);
         }
@@ -42580,25 +42583,47 @@ function getDiffMessages(currentTag, previousTag, servicePath) {
         return output.split('\n').filter(line => line.length > 0);
     });
 }
+// The history page of a service can only be narrowed by day, read in UTC: it
+// starts on the day of the previous tag, so it may show a few commits of the
+// previous release.
+function getDay(ref) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const date = (yield git.raw(['log', '-1', '--format=%cI', ref])).trim();
+        return new Date(date).toISOString().slice(0, 10);
+    });
+}
+function getLink(messages, previousTag, servicePath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!servicePath) {
+            return previousTag ? { kind: 'compare' } : { kind: 'none' };
+        }
+        if (messages.length === 0) {
+            return { kind: 'none' };
+        }
+        return { kind: 'history', path: servicePath, since: previousTag ? yield getDay(previousTag) : undefined };
+    });
+}
 function getCommitMessages(config) {
     return __awaiter(this, void 0, void 0, function* () {
         core.startGroup("Fetching git informations");
         const currentTag = (0, utils_1.extractTag)(github_1.context.ref);
-        const previousTag = yield getPreviousTagOrCommit(currentTag, config);
+        const previousTag = yield getPreviousTag(currentTag, config);
         const servicePath = resolveServicePath(currentTag, config);
         if (servicePath) {
             core.info(`Scoping changelog to "${servicePath}"`);
         }
-        core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
+        core.info(`Fetching commit messages between ${previousTag !== null && previousTag !== void 0 ? previousTag : 'the first commit'} and ${currentTag}`);
         const messages = yield getDiffMessages(currentTag, previousTag, servicePath);
         core.info(`Found ${messages.length} commits`);
         core.info(`Stripping ci skip tags`);
         const messagesStripped = messages.map(m => m.replace("[happn-ci-skip]", ""));
+        const link = yield getLink(messages, previousTag, servicePath);
         core.endGroup();
         return {
             from: previousTag,
             to: currentTag,
-            messages: messagesStripped
+            messages: messagesStripped,
+            link
         };
     });
 }
@@ -42685,9 +42710,22 @@ function getMdChangelog(gitCommits) {
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");
-    return `${commitMessages}\n[Compare ${gitCommits.from} and ${gitCommits.to}](${(0, utils_1.getDiffUrl)(gitCommits.from, gitCommits.to)})`;
+    const link = getLinkLine(gitCommits);
+    return link ? `${commitMessages}\n${link}` : commitMessages;
 }
 exports.getMdChangelog = getMdChangelog;
+function getLinkLine({ from, to, link }) {
+    switch (link.kind) {
+        case 'compare':
+            return `[Compare ${from} and ${to}](${(0, utils_1.getDiffUrl)(from, to)})`;
+        case 'history': {
+            const label = link.since ? `${link.path} commits since ${from}` : `${link.path} history`;
+            return `[${label}](${(0, utils_1.getHistoryUrl)(to, link.path, link.since)})`;
+        }
+        case 'none':
+            return undefined;
+    }
+}
 function createRelease(config, tagName, changelog) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!config.github.enabled) {
@@ -42933,7 +42971,7 @@ exports.sendSlackMessage = sendSlackMessage;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getDiffUrl = exports.getPRUrl = exports.getCveUrl = exports.getJiraUrl = exports.extractTagPrefix = exports.extractTag = void 0;
+exports.getHistoryUrl = exports.getDiffUrl = exports.getPRUrl = exports.getCveUrl = exports.getJiraUrl = exports.extractTagPrefix = exports.extractTag = void 0;
 const github_1 = __nccwpck_require__(3228);
 function extractTag(ref) {
     if (!ref || !ref.startsWith('refs/tags/')) {
@@ -42957,18 +42995,24 @@ function getCveUrl(cveKey) {
     return `https://github.com/advisories?query=${cveKey}`;
 }
 exports.getCveUrl = getCveUrl;
-function getPRUrl(prId) {
+function getRepositoryUrl() {
     const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
     const githubRepository = process.env.GITHUB_REPOSITORY || `${github_1.context.repo.owner}/${github_1.context.repo.repo}`;
-    return `${githubUrl}/${githubRepository}/pull/${prId}`;
+    return `${githubUrl}/${githubRepository}`;
+}
+function getPRUrl(prId) {
+    return `${getRepositoryUrl()}/pull/${prId}`;
 }
 exports.getPRUrl = getPRUrl;
 function getDiffUrl(from, to) {
-    const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
-    const githubRepository = process.env.GITHUB_REPOSITORY || `${github_1.context.repo.owner}/${github_1.context.repo.repo}`;
-    return `${githubUrl}/${githubRepository}/compare/${from}...${to}`;
+    return `${getRepositoryUrl()}/compare/${from}...${to}`;
 }
 exports.getDiffUrl = getDiffUrl;
+function getHistoryUrl(to, path, since) {
+    const url = `${getRepositoryUrl()}/commits/${to}/${path}`;
+    return since ? `${url}?since=${since}` : url;
+}
+exports.getHistoryUrl = getHistoryUrl;
 
 
 /***/ }),
