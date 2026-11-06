@@ -7,5 +7,7 @@
 * [now](now): workflow to deploy on `Zeit/Now`
 * [remote-testing](remote-testing): workflow to launch a remote `npm test`
 * [comment](comment): workflow to add a comment on a `github` repository
+* [gitops](gitops): workflows for the `gitops` repository
+  * [deploy-changelog](gitops/deploy-changelog): write the changelog of the deployed backend releases in a pull request, and post it to Slack once merged
 
 Each workflow must be written in YAML and have a `.yml` extension. They also need a corresponding `README.md` file to explain their purpose.
