@@ -1,0 +1,24 @@
+name: 'Gitops Deploy Notify'
+description: 'Posts the changelog of a merged gitops PR to the Slack channel of each environment it deploys to'
+branding:
+  icon: message-circle
+  color: blue
+
+inputs:
+  slack_token:
+    description: 'Slack bot token allowed to post in the channels below'
+    required: true
+  preprod_channel:
+    description: 'Slack channel identifier for preprod deployments'
+    required: false
+  prod_channel:
+    description: 'Slack channel identifier for prod deployments'
+    required: false
+  dry_run:
+    description: 'Print the messages instead of posting them'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'node24'
+  main: 'dist/index.js'
