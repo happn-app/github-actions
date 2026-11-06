@@ -1,0 +1,46 @@
+name: 'Gitops Deploy Changelog'
+description: 'Writes the changelog of the backend releases a gitops PR deploys into its description, and posts it to Slack once merged'
+branding:
+  icon: file-text
+  color: blue
+
+inputs:
+  mode:
+    description: "'describe' writes the changelog in the pull request description, 'announce' posts it to Slack once merged"
+    required: true
+  github_token:
+    description: 'Token allowed to read and edit the gitops pull request'
+    required: false
+    default: ${{ github.token }}
+  backend_token:
+    description: 'Token allowed to read the tags, releases and pull requests of the backend repository, to write the changelog'
+    required: false
+  backend_repository:
+    description: 'Repository holding the service releases, tagged <service>-<version>'
+    required: false
+    default: 'happn-app/backend'
+  pull_request:
+    description: 'Number of the gitops pull request'
+    required: false
+    default: ${{ github.event.pull_request.number }}
+  base_sha:
+    description: 'Commit holding the versions currently deployed'
+    required: false
+    default: ${{ github.event.pull_request.base.sha }}
+  head_sha:
+    description: 'Commit holding the versions to deploy'
+    required: false
+    default: ${{ github.event.pull_request.head.sha }}
+  slack_token:
+    description: 'Slack bot token, member of the channels below, to post the changelog once merged'
+    required: false
+  preprod_channel:
+    description: 'Slack channel identifier for preprod deployments'
+    required: false
+  prod_channel:
+    description: 'Slack channel identifier for prod deployments'
+    required: false
+
+runs:
+  using: 'node24'
+  main: 'dist/index.js'

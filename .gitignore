@@ -1,4 +1,6 @@
 node_modules/
 package-lock.json
+# The gitops actions pin their dependencies, so their dist/ can be rebuilt as is.
+!gitops/*/package-lock.json
 yarn.lock
 .idea
