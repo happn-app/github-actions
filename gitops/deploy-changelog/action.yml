@@ -1,0 +1,38 @@
+name: 'Gitops Deploy Changelog'
+description: 'Writes the changelog of the backend releases a gitops PR deploys into its description'
+branding:
+  icon: file-text
+  color: blue
+
+inputs:
+  github_token:
+    description: 'Token allowed to read and edit the gitops pull request'
+    required: false
+    default: ${{ github.token }}
+  backend_token:
+    description: 'Token allowed to read the tags and releases of the backend repository'
+    required: true
+  backend_repository:
+    description: 'Repository holding the service releases, tagged <service>-<version>'
+    required: false
+    default: 'happn-app/backend'
+  pull_request:
+    description: 'Number of the gitops pull request'
+    required: false
+    default: ${{ github.event.pull_request.number }}
+  base_sha:
+    description: 'Commit holding the versions currently deployed'
+    required: false
+    default: ${{ github.event.pull_request.base.sha }}
+  head_sha:
+    description: 'Commit holding the versions to deploy'
+    required: false
+    default: ${{ github.event.pull_request.head.sha }}
+  dry_run:
+    description: 'Print the description instead of writing it'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'node24'
+  main: 'dist/index.js'
