@@ -10563,7 +10563,16 @@ RedirectableRequest.prototype._sanitizeOptions = function (options) {
   if (!options.headers) {
     options.headers = {};
   }
-  if (!isArray(options.sensitiveHeaders)) {
+  // Convert [header1, value1, header2, value2, …] to object
+  else if (Array.isArray(options.headers)) {
+    var headerList = options.headers;
+    options.headers = {};
+    for (var i = 0; i < headerList.length; i += 2) {
+      options.headers[headerList[i]] = headerList[i + 1];
+    }
+  }
+  // Ensure sensitive headers are always present
+  if (!Array.isArray(options.sensitiveHeaders)) {
     options.sensitiveHeaders = [];
   }
 
@@ -10941,10 +10950,6 @@ function isSubdomain(subdomain, domain) {
   return dot > 0 && subdomain[dot] === "." && subdomain.endsWith(domain);
 }
 
-function isArray(value) {
-  return value instanceof Array;
-}
-
 function isString(value) {
   return typeof value === "string" || value instanceof String;
 }
@@ -10962,7 +10967,7 @@ function isURL(value) {
 }
 
 function escapeRegex(regex) {
-  return regex.replace(/[\]\\/()*+?.$]/g, "\\$&");
+  return regex.replace(/[[\]\\/()*+?.^$|]/g, "\\$&");
 }
 
 // Exports
@@ -10977,8 +10982,6 @@ module.exports.wrap = wrap;
 
 "use strict";
 
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /*!
  * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
@@ -42534,6 +42537,7 @@ exports.getCommitMessages = void 0;
 const core = __importStar(__nccwpck_require__(7484));
 const github_1 = __nccwpck_require__(3228);
 const fs = __importStar(__nccwpck_require__(9896));
+const path = __importStar(__nccwpck_require__(6928));
 const simple_git_1 = __importDefault(__nccwpck_require__(5298));
 const utils_1 = __nccwpck_require__(1798);
 const git = (0, simple_git_1.default)();
@@ -42546,10 +42550,10 @@ function getPreviousTagOrCommit(currentTag, config) {
         const tags = yield git.tags([pattern, '--sort=-creatordate']);
         const previousTags = tags.all.filter(t => t !== currentTag);
         if (previousTags.length > 0) {
-            return previousTags[0];
+            return { ref: previousTags[0], isTag: true };
         }
         core.info("Did not find any previous tag, getting first commit instead");
-        return git.revparse("HEAD");
+        return { ref: yield git.revparse("HEAD"), isTag: false };
     });
 }
 // In a monorepo, the tag prefix (e.g. "front-api-") maps to a service directory
@@ -42561,44 +42565,67 @@ function resolveServicePath(currentTag, config) {
     if (!service) {
         return undefined;
     }
-    const servicePath = `${config.servicesDir}/${service}`;
+    // Relative to the repository root (the working directory), as it also ends up in a URL:
+    // `./services/` or `${{ github.workspace }}/services` must give `services/<service>`.
+    const servicePath = path.relative(process.cwd(), path.resolve(config.servicesDir, service))
+        .split(path.sep).join('/');
     if (!fs.existsSync(servicePath)) {
         core.warning(`Service directory "${servicePath}" not found, changelog will include commits from the whole repository`);
         return undefined;
     }
     return servicePath;
 }
-function getDiffMessages(currentTag, previousTag, servicePath) {
+function getDiffCommits(currentTag, previousTag, servicePath) {
     return __awaiter(this, void 0, void 0, function* () {
         // Using raw rather than git.log({file}) because the latter forces --follow,
         // which is meant for a single file and behaves inconsistently with a directory.
-        const args = ['log', '--format=%s', `${previousTag}..${currentTag}`];
+        const args = ['log', '--format=%cI%x09%s', `${previousTag}..${currentTag}`];
         if (servicePath) {
             args.push('--', servicePath);
         }
         const output = yield git.raw(args);
-        return output.split('\n').filter(line => line.length > 0);
+        return output.split('\n')
+            .filter(line => line.length > 0)
+            .map(line => {
+            const separator = line.indexOf('\t');
+            return { date: line.slice(0, separator), subject: line.slice(separator + 1) };
+        });
     });
+}
+const utcDay = (isoDate) => new Date(isoDate).toISOString().slice(0, 10);
+// The service's history page can only be narrowed by day, read in UTC: start on
+// the day of the earliest service commit of the release, so none is hidden even
+// when commit dates are out of order. That day may show a few commits of the
+// previous release.
+function getHistorySince(commits) {
+    return commits.map(c => utcDay(c.date)).reduce((a, b) => (a < b ? a : b));
 }
 function getCommitMessages(config) {
     return __awaiter(this, void 0, void 0, function* () {
         core.startGroup("Fetching git informations");
         const currentTag = (0, utils_1.extractTag)(github_1.context.ref);
-        const previousTag = yield getPreviousTagOrCommit(currentTag, config);
+        const previous = yield getPreviousTagOrCommit(currentTag, config);
+        const previousTag = previous.ref;
         const servicePath = resolveServicePath(currentTag, config);
         if (servicePath) {
             core.info(`Scoping changelog to "${servicePath}"`);
         }
         core.info(`Fetching commit messages between ${previousTag} and ${currentTag}`);
-        const messages = yield getDiffMessages(currentTag, previousTag, servicePath);
-        core.info(`Found ${messages.length} commits`);
+        const commits = yield getDiffCommits(currentTag, previousTag, servicePath);
+        core.info(`Found ${commits.length} commits`);
         core.info(`Stripping ci skip tags`);
-        const messagesStripped = messages.map(m => m.replace("[happn-ci-skip]", ""));
+        const messagesStripped = commits.map(c => c.subject.replace("[happn-ci-skip]", ""));
+        // A release without any service commit gets no link at all. The first release
+        // of a service has no previous tag: its whole history is the release.
+        const history = servicePath
+            ? (commits.length > 0 ? { path: servicePath, since: previous.isTag ? getHistorySince(commits) : undefined } : null)
+            : undefined;
         core.endGroup();
         return {
             from: previousTag,
             to: currentTag,
-            messages: messagesStripped
+            messages: messagesStripped,
+            history
         };
     });
 }
@@ -42685,7 +42712,17 @@ function getMdChangelog(gitCommits) {
         .map(replaceJira)
         .map(replaceGithubPr)
         .join("\n");
-    return `${commitMessages}\n[Compare ${gitCommits.from} and ${gitCommits.to}](${(0, utils_1.getDiffUrl)(gitCommits.from, gitCommits.to)})`;
+    // In a monorepo, a compare between two tags spans every service, and the
+    // full history of any repository integrated in between: link the service's
+    // own history instead.
+    const history = gitCommits.history;
+    if (history === null) {
+        return commitMessages;
+    }
+    const link = history
+        ? `[${history.path} ${history.since ? `commits since ${gitCommits.from}` : 'history'}](${(0, utils_1.getHistoryUrl)(gitCommits.to, history.path, history.since)})`
+        : `[Compare ${gitCommits.from} and ${gitCommits.to}](${(0, utils_1.getDiffUrl)(gitCommits.from, gitCommits.to)})`;
+    return `${commitMessages}\n${link}`;
 }
 exports.getMdChangelog = getMdChangelog;
 function createRelease(config, tagName, changelog) {
@@ -42933,7 +42970,7 @@ exports.sendSlackMessage = sendSlackMessage;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getDiffUrl = exports.getPRUrl = exports.getCveUrl = exports.getJiraUrl = exports.extractTagPrefix = exports.extractTag = void 0;
+exports.getHistoryUrl = exports.getDiffUrl = exports.getPRUrl = exports.getCveUrl = exports.getJiraUrl = exports.extractTagPrefix = exports.extractTag = void 0;
 const github_1 = __nccwpck_require__(3228);
 function extractTag(ref) {
     if (!ref || !ref.startsWith('refs/tags/')) {
@@ -42957,18 +42994,24 @@ function getCveUrl(cveKey) {
     return `https://github.com/advisories?query=${cveKey}`;
 }
 exports.getCveUrl = getCveUrl;
-function getPRUrl(prId) {
+function getRepositoryUrl() {
     const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
     const githubRepository = process.env.GITHUB_REPOSITORY || `${github_1.context.repo.owner}/${github_1.context.repo.repo}`;
-    return `${githubUrl}/${githubRepository}/pull/${prId}`;
+    return `${githubUrl}/${githubRepository}`;
+}
+function getPRUrl(prId) {
+    return `${getRepositoryUrl()}/pull/${prId}`;
 }
 exports.getPRUrl = getPRUrl;
 function getDiffUrl(from, to) {
-    const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
-    const githubRepository = process.env.GITHUB_REPOSITORY || `${github_1.context.repo.owner}/${github_1.context.repo.repo}`;
-    return `${githubUrl}/${githubRepository}/compare/${from}...${to}`;
+    return `${getRepositoryUrl()}/compare/${from}...${to}`;
 }
 exports.getDiffUrl = getDiffUrl;
+function getHistoryUrl(to, path, since) {
+    const url = `${getRepositoryUrl()}/commits/${to}/${path}`;
+    return since ? `${url}?since=${since}` : url;
+}
+exports.getHistoryUrl = getHistoryUrl;
 
 
 /***/ }),

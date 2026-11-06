@@ -1,7 +1,7 @@
 import { GitHub } from "@actions/github/lib/utils";
 import { context, getOctokit } from "@actions/github";
 import * as core from "@actions/core";
-import { getDiffUrl, getJiraUrl, getPRUrl } from "./utils";
+import { getDiffUrl, getHistoryUrl, getJiraUrl, getPRUrl } from "./utils";
 import { ActionConfig } from "./inputs";
 import { GitCommitsResponse } from "./git";
 
@@ -109,7 +109,18 @@ export function getMdChangelog(gitCommits: GitCommitsResponse): string {
         .map(replaceGithubPr)
         .join("\n");
     
-    return `${commitMessages}\n[Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})`;
+    // In a monorepo, a compare between two tags spans every service, and the
+    // full history of any repository integrated in between: link the service's
+    // own history instead.
+    const history = gitCommits.history;
+    if (history === null) {
+        return commitMessages;
+    }
+    const link = history
+        ? `[${history.path} ${history.since ? `commits since ${gitCommits.from}` : 'history'}](${getHistoryUrl(gitCommits.to, history.path, history.since)})`
+        : `[Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})`;
+
+    return `${commitMessages}\n${link}`;
 }
 
 export async function createRelease(config: ActionConfig, tagName: string, changelog: string): Promise<Release | void> {
