@@ -60,6 +60,13 @@ only includes commits that touched it, so releasing one service does not pick up
 others. Unprefixed tags (e.g. `1.102`) and prefixes without a matching directory fall back to the
 whole repository.
 
+For the same reason, the release links to the service's commit history instead of a compare: a
+compare between two tags spans every service, plus the full history of any repository integrated
+into the monorepo in between. GitHub filters that history by day only, read in UTC, so it starts on
+the day of the previous tag, and may then show a few commits of the previous release. The first
+release of a service has no previous tag: its notes list every commit of the service, and its link
+shows the whole history of the service. A release without any commit in the service gets no link.
+
 ## Limitations
 
 Action has dozens of known limitations:

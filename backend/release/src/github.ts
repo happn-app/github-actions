@@ -1,7 +1,7 @@
 import { GitHub } from "@actions/github/lib/utils";
 import { context, getOctokit } from "@actions/github";
 import * as core from "@actions/core";
-import { getDiffUrl, getJiraUrl, getPRUrl } from "./utils";
+import { getDiffUrl, getHistoryUrl, getJiraUrl, getPRUrl } from "./utils";
 import { ActionConfig } from "./inputs";
 import { GitCommitsResponse } from "./git";
 
@@ -109,7 +109,21 @@ export function getMdChangelog(gitCommits: GitCommitsResponse): string {
         .map(replaceGithubPr)
         .join("\n");
     
-    return `${commitMessages}\n[Compare ${gitCommits.from} and ${gitCommits.to}](${getDiffUrl(gitCommits.from, gitCommits.to)})`;
+    const link = getLinkLine(gitCommits);
+    return link ? `${commitMessages}\n${link}` : commitMessages;
+}
+
+function getLinkLine({ from, to, link }: GitCommitsResponse): string | undefined {
+    switch (link.kind) {
+        case 'compare':
+            return `[Compare ${from} and ${to}](${getDiffUrl(from as string, to)})`;
+        case 'history': {
+            const label = link.since ? `${link.path} commits since ${from}` : `${link.path} history`;
+            return `[${label}](${getHistoryUrl(to, link.path, link.since)})`;
+        }
+        case 'none':
+            return undefined;
+    }
 }
 
 export async function createRelease(config: ActionConfig, tagName: string, changelog: string): Promise<Release | void> {

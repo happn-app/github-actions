@@ -23,13 +23,20 @@ export function getCveUrl(cveKey: string): string {
 }
 
 
-export function getPRUrl(prId: string): string {
+function getRepositoryUrl(): string {
     const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
     const githubRepository = process.env.GITHUB_REPOSITORY || `${context.repo.owner}/${context.repo.repo}`;
-    return `${githubUrl}/${githubRepository}/pull/${prId}`;
+    return `${githubUrl}/${githubRepository}`;
+}
+
+export function getPRUrl(prId: string): string {
+    return `${getRepositoryUrl()}/pull/${prId}`;
 }
 export function getDiffUrl(from: string, to:string): string {
-    const githubUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
-    const githubRepository = process.env.GITHUB_REPOSITORY || `${context.repo.owner}/${context.repo.repo}`;
-    return `${githubUrl}/${githubRepository}/compare/${from}...${to}`;
+    return `${getRepositoryUrl()}/compare/${from}...${to}`;
+}
+
+export function getHistoryUrl(to: string, path: string, since?: string): string {
+    const url = `${getRepositoryUrl()}/commits/${to}/${path}`;
+    return since ? `${url}?since=${since}` : url;
 }
