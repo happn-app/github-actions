@@ -41,7 +41,11 @@ async function run(): Promise<void> {
       return describe()
     case 'announce': {
       const pullRequest = context.payload.pull_request
-      return announce(pullRequest?.body ?? '', pullRequest?.head?.sha)
+      return announce(pullRequest?.body ?? '', pullRequest?.head?.sha, {
+        login: pullRequest?.user?.login,
+        pullRequestUrl: pullRequest?.html_url as string,
+        pullRequest: pullRequest?.number as number,
+      })
     }
     default:
       throw new Error(`Unknown mode '${mode}': expected 'describe' or 'announce'.`)

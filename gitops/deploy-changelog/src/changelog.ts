@@ -1,7 +1,7 @@
 import { Section } from './body'
 import { Backend, Gitops } from './github'
 import { KUSTOMIZATION_FILE, changedImages, environmentOf, parseImages } from './kustomization'
-import { RELEASE_VERSION, commitBullet, releaseBullets, releaseRange, snapshotBranch } from './releases'
+import { RELEASE_VERSION, commitBullet, snapshotBranch } from './releases'
 
 export interface Deployment {
   service: string
@@ -53,68 +53,51 @@ export async function deployments(
   return [...found.values()]
 }
 
-// A snapshot has no release notes: it lists the commits of the service it adds
-// to what is deployed, and links the pull request it was built from.
-async function snapshotSection(backend: Backend, deployment: Deployment): Promise<Section> {
+// A release links to its release, a snapshot to the pull request of its branch.
+async function releaseUrl(backend: Backend, toTag: string, to: string): Promise<string> {
+  if (RELEASE_VERSION.test(to)) {
+    return `${backend.url}/releases/tag/${toTag}`
+  }
+  return (await backend.pullRequestOf(snapshotBranch(to))) ?? `${backend.url}/tree/${toTag}`
+}
+
+// The commits of the service the new version holds and the deployed one does
+// not, read from the tags: they exist as soon as the version is tagged, before
+// its release is published. The same goes for a release, a snapshot, or going
+// back to an older version, which adds nothing.
+export async function section(backend: Backend, deployment: Deployment): Promise<Section> {
   const { service, from, to } = deployment
   const fromTag = `${service}-${from}`
   const toTag = `${service}-${to}`
   const path = `services/${service}`
-  // Both histories are read from the deployed version on, so they stay short.
-  const since = await backend.commitDate(fromTag)
-  const [added, deployed, pullRequest] = await Promise.all([
+  // Both histories are read from where they part, so they stay short.
+  const since = await backend.mergeBaseDate(fromTag, toTag)
+  if (since === undefined) {
+    // The deployed version has no tag, e.g. it predates the service's own tags:
+    // its changes cannot be listed, but the other services still are.
+    const url = await releaseUrl(backend, toTag, to)
+    return {
+      ...deployment,
+      note: `${fromTag} has no tag, the changes cannot be listed.`,
+      releases: [{ tag: toTag, url, bullets: [] }],
+    }
+  }
+  const [added, deployed, url] = await Promise.all([
     backend.serviceCommits(toTag, path, since),
     backend.serviceCommits(fromTag, path, since),
-    backend.pullRequestOf(snapshotBranch(to)),
+    releaseUrl(backend, toTag, to),
   ])
+  const addedShas = new Set(added.map((c) => c.sha))
   const shipped = new Set(deployed.map((c) => c.sha))
-  return {
-    ...deployment,
-    releases: [
-      {
-        tag: toTag,
-        url: pullRequest ?? `${backend.url}/tree/${toTag}`,
-        bullets: added.filter((c) => !shipped.has(c.sha)).map((c) => commitBullet(c.subject, backend.url)),
-      },
-    ],
-  }
-}
-
-export async function section(backend: Backend, deployment: Deployment): Promise<Section> {
-  const { service, from, to } = deployment
-  if (!RELEASE_VERSION.test(to)) {
-    return snapshotSection(backend, deployment)
-  }
-  const toTag = `${service}-${to}`
-  const result: Section = { ...deployment, releases: [] }
-  const releases = await backend.releasesOf(service)
-
-  // Going from a snapshot to a release deploys the releases after the one the
-  // snapshot was built on: the newest release, up to `to`, it contains.
-  let fromTag = `${service}-${from}`
-  if (!RELEASE_VERSION.test(from)) {
-    const base = await backend.firstContained(releases.slice(releases.indexOf(toTag)), fromTag)
-    if (base === toTag) {
-      return { ...result, note: `${toTag} is already part of the snapshot, nothing new is deployed.` }
-    }
-    fromTag = base ?? fromTag
-  }
-
-  const range = releaseRange(releases, fromTag, toTag)
-  if (!range) {
-    return { ...result, note: `Rollback: ${toTag} is older than ${fromTag}, nothing new is deployed.` }
-  }
-
-  const bodies = await Promise.all(range.map((tag) => backend.releaseBody(tag)))
-  // The CI publishes the release once the image is built: a pull request opened
-  // right after the tag is pushed comes before it.
-  if (bodies[0] === undefined) {
-    return { ...result, note: `The release notes of ${toTag} are not published yet.` }
-  }
-  result.releases = range.map((tag, i) => ({
-    tag,
-    url: `${backend.url}/releases/tag/${tag}`,
-    bullets: releaseBullets(bodies[i] ?? ''),
-  }))
-  return result
+  const bullets = added.filter((c) => !shipped.has(c.sha)).map((c) => commitBullet(c.subject, backend.url))
+  // Going back to an older version adds nothing but drops commits: say so, as the
+  // announcement only shows the new version.
+  const rollback = deployed.some((c) => !addedShas.has(c.sha))
+  const note =
+    bullets.length > 0
+      ? undefined
+      : rollback
+        ? `Rollback: ${toTag} drops changes of ${fromTag}, nothing new is deployed.`
+        : `Nothing new compared with ${fromTag}.`
+  return { ...deployment, note, releases: [{ tag: toTag, url, bullets }] }
 }

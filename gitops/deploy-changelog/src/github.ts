@@ -1,6 +1,6 @@
 import { getOctokit } from '@actions/github'
 
-import { isReleaseOf, serviceCandidates, sortByVersion } from './releases'
+import { serviceCandidates } from './releases'
 
 type Octokit = ReturnType<typeof getOctokit>
 
@@ -69,9 +69,6 @@ export class Gitops {
 }
 
 export class Backend {
-  private readonly releases = new Map<string, Promise<string[]>>()
-  private readonly bodies = new Map<string, Promise<string | undefined>>()
-
   constructor(private readonly octokit: Octokit, readonly repository: Repository) {}
 
   get url(): string {
@@ -104,38 +101,6 @@ export class Backend {
     return candidates.find((_, i) => exists[i])
   }
 
-  // The release tags of a service, newest version first. Read from the tags of
-  // the service rather than from the releases of the repository, which mix every
-  // service and follow the creation date.
-  async releasesOf(service: string): Promise<string[]> {
-    let tags = this.releases.get(service)
-    if (!tags) {
-      tags = this.octokit
-        .paginate(this.octokit.rest.git.listMatchingRefs, { ...this.repository, ref: `tags/${service}-`, per_page: 100 })
-        .then((refs) => sortByVersion(refs.map((r) => r.ref.replace(/^refs\/tags\//, '')).filter((t) => isReleaseOf(service, t))))
-      this.releases.set(service, tags)
-    }
-    return tags
-  }
-
-  // The notes of a release, undefined when the tag has no published release.
-  async releaseBody(tag: string): Promise<string | undefined> {
-    let body = this.bodies.get(tag)
-    if (!body) {
-      body = this.octokit.rest.repos.getReleaseByTag({ ...this.repository, tag }).then(
-        (response) => (response.data.draft ? undefined : (response.data.body ?? '').replace(/\r/g, '')),
-        (error) => {
-          if (isNotFound(error)) {
-            return undefined
-          }
-          throw error
-        },
-      )
-      this.bodies.set(tag, body)
-    }
-    return body
-  }
-
   // The commits of a service in the history of `ref` since a date, newest first.
   async serviceCommits(ref: string, path: string, since: string): Promise<{ sha: string; subject: string }[]> {
     const commits = await this.octokit.paginate(this.octokit.rest.repos.listCommits, {
@@ -148,25 +113,24 @@ export class Backend {
     return commits.map((c) => ({ sha: c.sha, subject: c.commit.message.split('\n')[0] }))
   }
 
-  // The committer date of a commit, e.g. `2026-10-02T09:10:07Z`.
-  async commitDate(ref: string): Promise<string> {
-    const response = await this.octokit.rest.repos.getCommit({ ...this.repository, ref })
-    return response.data.commit.committer?.date ?? response.data.commit.author?.date ?? ''
-  }
-
-  // The first of `tags` that the history of `ref` contains, e.g. the release a snapshot was built on.
-  async firstContained(tags: string[], ref: string): Promise<string | undefined> {
-    for (const tag of tags) {
+  // The committer date of the commit where two histories part, e.g. the master
+  // commit a snapshot branch started from. Undefined when either ref does not
+  // exist, e.g. a version deployed before the service had tags of its own.
+  async mergeBaseDate(base: string, head: string): Promise<string | undefined> {
+    try {
       const response = await this.octokit.rest.repos.compareCommitsWithBasehead({
         ...this.repository,
-        basehead: `${tag}...${ref}`,
+        basehead: `${base}...${head}`,
         per_page: 1,
       })
-      if (response.data.status === 'ahead' || response.data.status === 'identical') {
-        return tag
+      const commit = response.data.merge_base_commit.commit
+      return commit.committer?.date ?? commit.author?.date
+    } catch (error) {
+      if (isNotFound(error)) {
+        return undefined
       }
+      throw error
     }
-    return undefined
   }
 
   // The latest pull request of a branch, whatever its state.

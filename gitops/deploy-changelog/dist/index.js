@@ -29978,7 +29978,7 @@ async function post(token, channel, text) {
     }
 }
 // Posts the changelog of a merged pull request to the channel of each environment it deploys to.
-async function announce(body, mergedHead) {
+async function announce(body, mergedHead, deployer) {
     const { head, sections } = (0, slack_1.changelogOf)(body);
     if (sections.size === 0) {
         core.info('No deploy changelog in the pull request description, nothing to post.');
@@ -30003,7 +30003,7 @@ async function announce(body, mergedHead) {
         }
         // A failure is reported as a warning, and the other environments are still announced.
         try {
-            await post(token, channel, (0, slack_1.message)(environmentSections));
+            await post(token, channel, (0, slack_1.message)(environmentSections, deployer));
             core.info(`Changelog posted to ${channel} for ${environment}.`);
         }
         catch (error) {
@@ -30040,7 +30040,7 @@ function renderSection(section) {
     }
     for (const release of section.releases) {
         lines.push('', `### [${release.tag}](${release.url})`);
-        lines.push(...(release.bullets.length > 0 ? release.bullets : ['_No release notes._']));
+        lines.push(...release.bullets);
     }
     return lines.join('\n');
 }
@@ -30120,66 +30120,51 @@ async function deployments(gitops, backend, pullRequest, baseSha, headSha, log) 
     }
     return [...found.values()];
 }
-// A snapshot has no release notes: it lists the commits of the service it adds
-// to what is deployed, and links the pull request it was built from.
-async function snapshotSection(backend, deployment) {
+// A release links to its release, a snapshot to the pull request of its branch.
+async function releaseUrl(backend, toTag, to) {
+    if (releases_1.RELEASE_VERSION.test(to)) {
+        return `${backend.url}/releases/tag/${toTag}`;
+    }
+    return (await backend.pullRequestOf((0, releases_1.snapshotBranch)(to))) ?? `${backend.url}/tree/${toTag}`;
+}
+// The commits of the service the new version holds and the deployed one does
+// not, read from the tags: they exist as soon as the version is tagged, before
+// its release is published. The same goes for a release, a snapshot, or going
+// back to an older version, which adds nothing.
+async function section(backend, deployment) {
     const { service, from, to } = deployment;
     const fromTag = `${service}-${from}`;
     const toTag = `${service}-${to}`;
     const path = `services/${service}`;
-    // Both histories are read from the deployed version on, so they stay short.
-    const since = await backend.commitDate(fromTag);
-    const [added, deployed, pullRequest] = await Promise.all([
+    // Both histories are read from where they part, so they stay short.
+    const since = await backend.mergeBaseDate(fromTag, toTag);
+    if (since === undefined) {
+        // The deployed version has no tag, e.g. it predates the service's own tags:
+        // its changes cannot be listed, but the other services still are.
+        const url = await releaseUrl(backend, toTag, to);
+        return {
+            ...deployment,
+            note: `${fromTag} has no tag, the changes cannot be listed.`,
+            releases: [{ tag: toTag, url, bullets: [] }],
+        };
+    }
+    const [added, deployed, url] = await Promise.all([
         backend.serviceCommits(toTag, path, since),
         backend.serviceCommits(fromTag, path, since),
-        backend.pullRequestOf((0, releases_1.snapshotBranch)(to)),
+        releaseUrl(backend, toTag, to),
     ]);
+    const addedShas = new Set(added.map((c) => c.sha));
     const shipped = new Set(deployed.map((c) => c.sha));
-    return {
-        ...deployment,
-        releases: [
-            {
-                tag: toTag,
-                url: pullRequest ?? `${backend.url}/tree/${toTag}`,
-                bullets: added.filter((c) => !shipped.has(c.sha)).map((c) => (0, releases_1.commitBullet)(c.subject, backend.url)),
-            },
-        ],
-    };
-}
-async function section(backend, deployment) {
-    const { service, from, to } = deployment;
-    if (!releases_1.RELEASE_VERSION.test(to)) {
-        return snapshotSection(backend, deployment);
-    }
-    const toTag = `${service}-${to}`;
-    const result = { ...deployment, releases: [] };
-    const releases = await backend.releasesOf(service);
-    // Going from a snapshot to a release deploys the releases after the one the
-    // snapshot was built on: the newest release, up to `to`, it contains.
-    let fromTag = `${service}-${from}`;
-    if (!releases_1.RELEASE_VERSION.test(from)) {
-        const base = await backend.firstContained(releases.slice(releases.indexOf(toTag)), fromTag);
-        if (base === toTag) {
-            return { ...result, note: `${toTag} is already part of the snapshot, nothing new is deployed.` };
-        }
-        fromTag = base ?? fromTag;
-    }
-    const range = (0, releases_1.releaseRange)(releases, fromTag, toTag);
-    if (!range) {
-        return { ...result, note: `Rollback: ${toTag} is older than ${fromTag}, nothing new is deployed.` };
-    }
-    const bodies = await Promise.all(range.map((tag) => backend.releaseBody(tag)));
-    // The CI publishes the release once the image is built: a pull request opened
-    // right after the tag is pushed comes before it.
-    if (bodies[0] === undefined) {
-        return { ...result, note: `The release notes of ${toTag} are not published yet.` };
-    }
-    result.releases = range.map((tag, i) => ({
-        tag,
-        url: `${backend.url}/releases/tag/${tag}`,
-        bullets: (0, releases_1.releaseBullets)(bodies[i] ?? ''),
-    }));
-    return result;
+    const bullets = added.filter((c) => !shipped.has(c.sha)).map((c) => (0, releases_1.commitBullet)(c.subject, backend.url));
+    // Going back to an older version adds nothing but drops commits: say so, as the
+    // announcement only shows the new version.
+    const rollback = deployed.some((c) => !addedShas.has(c.sha));
+    const note = bullets.length > 0
+        ? undefined
+        : rollback
+            ? `Rollback: ${toTag} drops changes of ${fromTag}, nothing new is deployed.`
+            : `Nothing new compared with ${fromTag}.`;
+    return { ...deployment, note, releases: [{ tag: toTag, url, bullets }] };
 }
 
 
@@ -30255,8 +30240,6 @@ exports.Gitops = Gitops;
 class Backend {
     octokit;
     repository;
-    releases = new Map();
-    bodies = new Map();
     constructor(octokit, repository) {
         this.octokit = octokit;
         this.repository = repository;
@@ -30288,33 +30271,6 @@ class Backend {
         const exists = await Promise.all(candidates.map((candidate) => this.tagExists(`${candidate}-${version}`)));
         return candidates.find((_, i) => exists[i]);
     }
-    // The release tags of a service, newest version first. Read from the tags of
-    // the service rather than from the releases of the repository, which mix every
-    // service and follow the creation date.
-    async releasesOf(service) {
-        let tags = this.releases.get(service);
-        if (!tags) {
-            tags = this.octokit
-                .paginate(this.octokit.rest.git.listMatchingRefs, { ...this.repository, ref: `tags/${service}-`, per_page: 100 })
-                .then((refs) => (0, releases_1.sortByVersion)(refs.map((r) => r.ref.replace(/^refs\/tags\//, '')).filter((t) => (0, releases_1.isReleaseOf)(service, t))));
-            this.releases.set(service, tags);
-        }
-        return tags;
-    }
-    // The notes of a release, undefined when the tag has no published release.
-    async releaseBody(tag) {
-        let body = this.bodies.get(tag);
-        if (!body) {
-            body = this.octokit.rest.repos.getReleaseByTag({ ...this.repository, tag }).then((response) => (response.data.draft ? undefined : (response.data.body ?? '').replace(/\r/g, '')), (error) => {
-                if (isNotFound(error)) {
-                    return undefined;
-                }
-                throw error;
-            });
-            this.bodies.set(tag, body);
-        }
-        return body;
-    }
     // The commits of a service in the history of `ref` since a date, newest first.
     async serviceCommits(ref, path, since) {
         const commits = await this.octokit.paginate(this.octokit.rest.repos.listCommits, {
@@ -30326,24 +30282,25 @@ class Backend {
         });
         return commits.map((c) => ({ sha: c.sha, subject: c.commit.message.split('\n')[0] }));
     }
-    // The committer date of a commit, e.g. `2026-10-02T09:10:07Z`.
-    async commitDate(ref) {
-        const response = await this.octokit.rest.repos.getCommit({ ...this.repository, ref });
-        return response.data.commit.committer?.date ?? response.data.commit.author?.date ?? '';
-    }
-    // The first of `tags` that the history of `ref` contains, e.g. the release a snapshot was built on.
-    async firstContained(tags, ref) {
-        for (const tag of tags) {
+    // The committer date of the commit where two histories part, e.g. the master
+    // commit a snapshot branch started from. Undefined when either ref does not
+    // exist, e.g. a version deployed before the service had tags of its own.
+    async mergeBaseDate(base, head) {
+        try {
             const response = await this.octokit.rest.repos.compareCommitsWithBasehead({
                 ...this.repository,
-                basehead: `${tag}...${ref}`,
+                basehead: `${base}...${head}`,
                 per_page: 1,
             });
-            if (response.data.status === 'ahead' || response.data.status === 'identical') {
-                return tag;
-            }
+            const commit = response.data.merge_base_commit.commit;
+            return commit.committer?.date ?? commit.author?.date;
         }
-        return undefined;
+        catch (error) {
+            if (isNotFound(error)) {
+                return undefined;
+            }
+            throw error;
+        }
     }
     // The latest pull request of a branch, whatever its state.
     async pullRequestOf(branch) {
@@ -30435,7 +30392,11 @@ async function run() {
             return describe();
         case 'announce': {
             const pullRequest = github_1.context.payload.pull_request;
-            return (0, announce_1.announce)(pullRequest?.body ?? '', pullRequest?.head?.sha);
+            return (0, announce_1.announce)(pullRequest?.body ?? '', pullRequest?.head?.sha, {
+                login: pullRequest?.user?.login,
+                pullRequestUrl: pullRequest?.html_url,
+                pullRequest: pullRequest?.number,
+            });
         }
         default:
             throw new Error(`Unknown mode '${mode}': expected 'describe' or 'announce'.`);
@@ -30519,28 +30480,13 @@ exports.KUSTOMIZATION_FILE = /^apps\/.+\/kustomization\.ya?ml$/;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SNAPSHOT = exports.RELEASE_VERSION = void 0;
 exports.serviceCandidates = serviceCandidates;
-exports.releaseRange = releaseRange;
 exports.snapshotBranch = snapshotBranch;
-exports.sortByVersion = sortByVersion;
-exports.isReleaseOf = isReleaseOf;
-exports.releaseBullets = releaseBullets;
 exports.commitBullet = commitBullet;
 // `shop-v2-worker` → `shop-v2-worker`, `shop-v2`, `shop`: the backend tag prefix is
 // the longest of these for which `<prefix>-<version>` exists.
 function serviceCandidates(image) {
     const parts = image.split('-');
     return parts.map((_, i) => parts.slice(0, parts.length - i).join('-'));
-}
-// The release tags deployed, from `to` down to, but excluding, `from`, newest
-// first; undefined for a rollback. `releases` is the list of the service's release
-// tags, newest version first, which holds `to`: its tag was found to resolve the service.
-function releaseRange(releases, fromTag, toTag) {
-    const to = releases.indexOf(toTag);
-    const from = releases.indexOf(fromTag);
-    if (from === -1) {
-        return [toTag];
-    }
-    return from > to ? releases.slice(to, from) : undefined;
 }
 // Release versions only (`1.206`): snapshots and third-party tags have no backend release.
 exports.RELEASE_VERSION = /^[0-9]+(\.[0-9]+)+$/;
@@ -30549,34 +30495,6 @@ exports.SNAPSHOT = /-SNAPSHOT$/;
 // The branch a snapshot was built from: `feat-shop-v2-metrics-logs-1793711562-SNAPSHOT` → `feat-shop-v2-metrics-logs`.
 function snapshotBranch(snapshot) {
     return snapshot.replace(/-[0-9]+-SNAPSHOT$/, '');
-}
-// Release tags, newest version first: `charms-1.10` comes after `charms-1.9`.
-function sortByVersion(tags) {
-    const version = (tag) => (tag.match(/[0-9]+(\.[0-9]+)+$/)?.[0] ?? '').split('.').map(Number);
-    return [...tags].sort((a, b) => {
-        const [va, vb] = [version(a), version(b)];
-        for (let i = 0; i < Math.max(va.length, vb.length); i++) {
-            const diff = (vb[i] ?? 0) - (va[i] ?? 0);
-            if (diff !== 0) {
-                return diff;
-            }
-        }
-        return 0;
-    });
-}
-function isReleaseOf(service, tag) {
-    return tag.startsWith(`${service}-`) && exports.RELEASE_VERSION.test(tag.slice(service.length + 1));
-}
-// The link closing the notes of a release, to a compare or to the service history.
-const LINK_LINE = /^\[(Compare .* and .*|.* commits since .*|.* history)\]\(/;
-// The changes of a release, as written by backend/release, without its link
-// line: the title of the release already links to its page.
-function releaseBullets(body) {
-    return body
-        .replace(/\r/g, '')
-        .split('\n')
-        .filter((line) => line.trim().length > 0 && !LINK_LINE.test(line))
-        .map((line) => line.replace(/^-️\s*/, '- '));
 }
 // A commit subject written as backend/release writes its notes: tickets link to
 // JIRA and pull request numbers to the pull request.
@@ -30637,30 +30555,29 @@ function toMrkdwn(line) {
     const text = escape(line).replace(/\[([^[\]]+)\]\(([^)]+)\)/g, '<$2|$1>');
     return text.startsWith('- ') ? `• ${text.slice(2)}` : text;
 }
-// One block per release, as backend/release announces it: the service and the
-// version in bold, the version linking to the release, then its changes.
-function releases(section) {
-    const blocks = [];
+// One block per deployed service, as backend/release announces a release: the
+// service and the version in bold, the version linking to the release, then who
+// deployed it and its changes.
+function block(section, deployer) {
+    let title = `*${escape(section.service)}*`;
+    const lines = [];
     for (const line of section.lines) {
         const release = RELEASE_TITLE.exec(line);
         if (release) {
             const version = release[1].startsWith(`${section.service}-`)
                 ? release[1].slice(section.service.length + 1)
                 : release[1];
-            blocks.push([`*${escape(section.service)} <${release[2]}|${escape(version)}>*`]);
+            title = `*${escape(section.service)} <${release[2]}|${escape(version)}>*`;
         }
         else if (line.trim()) {
-            // A note before the first release, e.g. a rollback, has a block of its own.
-            if (blocks.length === 0) {
-                blocks.push([`*${escape(section.service)}*`]);
-            }
-            blocks[blocks.length - 1].push(toMrkdwn(line));
+            lines.push(toMrkdwn(line));
         }
     }
-    return blocks.map((block) => block.join('\n'));
+    const deployedBy = `deployed by ${escape(deployer.login)} (<${deployer.pullRequestUrl}|gitops#${deployer.pullRequest}>)`;
+    return [`${title} ${deployedBy}`, ...lines].join('\n');
 }
-function message(sections) {
-    return sections.flatMap(releases).join('\n\n');
+function message(sections, deployer) {
+    return sections.map((section) => block(section, deployer)).join('\n\n');
 }
 
 

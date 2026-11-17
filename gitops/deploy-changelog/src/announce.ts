@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 
-import { changelogOf, message } from './slack'
+import { Deployer, changelogOf, message } from './slack'
 
 const SLACK_TIMEOUT_MS = 30_000
 
@@ -18,7 +18,7 @@ async function post(token: string, channel: string, text: string): Promise<void>
 }
 
 // Posts the changelog of a merged pull request to the channel of each environment it deploys to.
-export async function announce(body: string, mergedHead: string): Promise<void> {
+export async function announce(body: string, mergedHead: string, deployer: Deployer): Promise<void> {
   const { head, sections } = changelogOf(body)
   if (sections.size === 0) {
     core.info('No deploy changelog in the pull request description, nothing to post.')
@@ -46,7 +46,7 @@ export async function announce(body: string, mergedHead: string): Promise<void> 
     }
     // A failure is reported as a warning, and the other environments are still announced.
     try {
-      await post(token, channel, message(environmentSections))
+      await post(token, channel, message(environmentSections, deployer))
       core.info(`Changelog posted to ${channel} for ${environment}.`)
     } catch (error) {
       core.warning(`Changelog not posted to ${channel} for ${environment}: ${error instanceof Error ? error.message : error}`)
