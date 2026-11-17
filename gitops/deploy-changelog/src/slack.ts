@@ -50,28 +50,34 @@ export function toMrkdwn(line: string): string {
   return text.startsWith('- ') ? `• ${text.slice(2)}` : text
 }
 
-// One block per release, as backend/release announces it: the service and the
-// version in bold, the version linking to the release, then its changes.
-function releases(section: WrittenSection): string[] {
-  const blocks: string[][] = []
+// Who deployed: the author of the gitops pull request.
+export interface Deployer {
+  login: string
+  pullRequestUrl: string
+  pullRequest: number
+}
+
+// One block per deployed service, as backend/release announces a release: the
+// service and the version in bold, the version linking to the release, then who
+// deployed it and its changes.
+function block(section: WrittenSection, deployer: Deployer): string {
+  let title = `*${escape(section.service)}*`
+  const lines: string[] = []
   for (const line of section.lines) {
     const release = RELEASE_TITLE.exec(line)
     if (release) {
       const version = release[1].startsWith(`${section.service}-`)
         ? release[1].slice(section.service.length + 1)
         : release[1]
-      blocks.push([`*${escape(section.service)} <${release[2]}|${escape(version)}>*`])
+      title = `*${escape(section.service)} <${release[2]}|${escape(version)}>*`
     } else if (line.trim()) {
-      // A note before the first release, e.g. a rollback, has a block of its own.
-      if (blocks.length === 0) {
-        blocks.push([`*${escape(section.service)}*`])
-      }
-      blocks[blocks.length - 1].push(toMrkdwn(line))
+      lines.push(toMrkdwn(line))
     }
   }
-  return blocks.map((block) => block.join('\n'))
+  const deployedBy = `deployed by ${escape(deployer.login)} (<${deployer.pullRequestUrl}|gitops#${deployer.pullRequest}>)`
+  return [`${title} ${deployedBy}`, ...lines].join('\n')
 }
 
-export function message(sections: WrittenSection[]): string {
-  return sections.flatMap(releases).join('\n\n')
+export function message(sections: WrittenSection[], deployer: Deployer): string {
+  return sections.map((section) => block(section, deployer)).join('\n\n')
 }

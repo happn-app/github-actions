@@ -22,7 +22,7 @@ export function renderSection(section: Section): string {
   }
   for (const release of section.releases) {
     lines.push('', `### [${release.tag}](${release.url})`)
-    lines.push(...(release.bullets.length > 0 ? release.bullets : ['_No release notes._']))
+    lines.push(...release.bullets)
   }
   return lines.join('\n')
 }

@@ -12,9 +12,6 @@ const body = [
   '- [[BCK-1938](https://happnapp.atlassian.net/browse/BCK-1938)] Appeler orders v3 avec le client généré ([#823](https://github.com/happn-app/backend/pull/823))',
   '- fix(shop-v2): adapt to mockserver 9.2.0',
   '',
-  '### [shop-v2-1.75](https://github.com/happn-app/backend/releases/tag/shop-v2-1.75)',
-  '- Fix Map<String, X> & co',
-  '',
   '## spots 1.160 → 1.161 (prod)',
   '',
   '### [spots-1.161](https://github.com/happn-app/backend/releases/tag/spots-1.161)',
@@ -60,31 +57,33 @@ describe('toMrkdwn', () => {
 })
 
 describe('message', () => {
-  it('announces each release like the release message', () => {
-    expect(message(changelogOf(body).sections.get('preprod') ?? [])).toBe(
+  const deployer = { login: 'EtiPlas', pullRequestUrl: 'https://github.com/happn-app/gitops/pull/6428', pullRequest: 6428 }
+  const deployedBy = 'deployed by EtiPlas (<https://github.com/happn-app/gitops/pull/6428|gitops#6428>)'
+
+  it('titles each service with its version and who deployed it, then lists its changes', () => {
+    expect(message(changelogOf(body).sections.get('preprod') ?? [], deployer)).toBe(
       [
-        '*shop-v2 <https://github.com/happn-app/backend/releases/tag/shop-v2-1.76|1.76>*',
+        `*shop-v2 <https://github.com/happn-app/backend/releases/tag/shop-v2-1.76|1.76>* ${deployedBy}`,
         '• [<https://happnapp.atlassian.net/browse/BCK-1938|BCK-1938>] Appeler orders v3 avec le client généré (<https://github.com/happn-app/backend/pull/823|#823>)',
         '• fix(shop-v2): adapt to mockserver 9.2.0',
-        '',
-        '*shop-v2 <https://github.com/happn-app/backend/releases/tag/shop-v2-1.75|1.75>*',
-        '• Fix Map&lt;String, X&gt; &amp; co',
       ].join('\n'),
     )
   })
 
-  it('announces a note without release, such as a rollback', () => {
+  it('keeps the note of a deployment that adds nothing', () => {
     const rollback = changelogOf(
       [
         '<!-- deploy-changelog:start head=abc -->',
         '## charms 1.206 → 1.205 (prod)',
         '',
-        '_Rollback: charms-1.205 is older than charms-1.206, nothing new is deployed._',
+        '_Nothing new compared with charms-1.206._',
+        '',
+        '### [charms-1.205](https://github.com/happn-app/backend/releases/tag/charms-1.205)',
         '<!-- deploy-changelog:end -->',
       ].join('\n'),
     ).sections.get('prod')
-    expect(message(rollback ?? [])).toBe(
-      '*charms*\n_Rollback: charms-1.205 is older than charms-1.206, nothing new is deployed._',
+    expect(message(rollback ?? [], deployer)).toBe(
+      `*charms <https://github.com/happn-app/backend/releases/tag/charms-1.205|1.205>* ${deployedBy}\n_Nothing new compared with charms-1.206._`,
     )
   })
 })

@@ -13,10 +13,10 @@ inputs:
     required: false
     default: ${{ github.token }}
   backend_token:
-    description: 'Token allowed to read the tags, releases and pull requests of the backend repository, to write the changelog'
+    description: 'Token allowed to read the tags, commits and pull requests of the backend repository, to write the changelog'
     required: false
   backend_repository:
-    description: 'Repository holding the service releases, tagged <service>-<version>'
+    description: 'Repository holding the services, tagged <service>-<version>'
     required: false
     default: 'happn-app/backend'
   pull_request:
