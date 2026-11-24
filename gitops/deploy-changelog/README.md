@@ -16,7 +16,8 @@ request numbers to the pull request. They are read from the tags, so the changel
 as the version is tagged, before its release is published. The same goes for a release, a snapshot,
 or going back to an older version, which adds nothing and is flagged as a rollback. A deployed
 version without tag gets a note instead of its changes. The version links to its release, or for a
-snapshot to the pull request of its branch.
+snapshot to the pull request of its branch. When the pull request skips releases, from 1.112 to 1.114,
+each release gets its own block, newest first, with the commits it brought.
 
 ```markdown
 ## charms 1.205 → 1.206 (preprod)
@@ -30,7 +31,8 @@ The changelog sits between `<!-- deploy-changelog:start head=<sha> -->` and
 block is rewritten on every push, so it follows the versions when the pull request changes.
 
 Once merged, each deployed service is announced with the service and the version in bold, the
-version linking to the release, who deployed it, then its changes.
+version linking to the release, who deployed it, then its changes. The releases a deployment skips
+follow, each in its own block with its changes.
 
 > **spots [1.161](https://github.com/happn-app/backend/releases/tag/spots-1.161)** deployed by EtiPlas ([gitops#6201](https://github.com/happn-app/gitops/pull/6201))
 > • [[BCK-1927](https://happnapp.atlassian.net/browse/BCK-1927)] Cover every spots endpoint with OpenAPI ([#819](https://github.com/happn-app/backend/pull/819))

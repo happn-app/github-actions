@@ -9,6 +9,7 @@ function backend(histories: Record<string, Commit[]>, tagged = true): Backend {
   return {
     url: 'https://github.com/happn-app/backend',
     mergeBaseDate: async () => (tagged ? '2026-10-01T00:00:00Z' : undefined),
+    serviceTags: async () => Object.keys(histories),
     serviceCommits: async (ref: string) => histories[ref] ?? [],
     pullRequestOf: async () => undefined,
   } as unknown as Backend
@@ -16,8 +17,34 @@ function backend(histories: Record<string, Commit[]>, tagged = true): Backend {
 
 const a = { sha: 'a', subject: 'fix(charms): a (#1)' }
 const b = { sha: 'b', subject: 'feat(charms): b' }
+const c = { sha: 'c', subject: 'feat(charms): c' }
 
 describe('section', () => {
+  it('gives each release of the range its own block, newest first', async () => {
+    const result = await section(
+      backend({
+        'charms-1.206': [c, b, a],
+        'charms-1.205': [b, a],
+        'charms-1.204': [a],
+        'charms-traits-1.205': [],
+      }),
+      { service: 'charms', environment: 'preprod', from: '1.204', to: '1.206' },
+    )
+    expect(result.note).toBeUndefined()
+    expect(result.releases).toEqual([
+      {
+        tag: 'charms-1.206',
+        url: 'https://github.com/happn-app/backend/releases/tag/charms-1.206',
+        bullets: ['- feat(charms): c'],
+      },
+      {
+        tag: 'charms-1.205',
+        url: 'https://github.com/happn-app/backend/releases/tag/charms-1.205',
+        bullets: ['- feat(charms): b'],
+      },
+    ])
+  })
+
   it('lists the commits the new version adds', async () => {
     const result = await section(backend({ 'charms-1.206': [b, a], 'charms-1.205': [a] }), {
       service: 'charms',

@@ -70,6 +70,31 @@ describe('message', () => {
     )
   })
 
+  it('announces each release of the range, newest first', () => {
+    const range = changelogOf(
+      [
+        '<!-- deploy-changelog:start head=abc -->',
+        '## users-traits 1.112 → 1.114 (preprod)',
+        '',
+        '### [users-traits-1.114](https://r/users-traits-1.114)',
+        '- feat: b',
+        '',
+        '### [users-traits-1.113](https://r/users-traits-1.113)',
+        '- fix: a',
+        '<!-- deploy-changelog:end -->',
+      ].join('\n'),
+    ).sections.get('preprod')
+    expect(message(range ?? [], deployer)).toBe(
+      [
+        `*users-traits <https://r/users-traits-1.114|1.114>* ${deployedBy}`,
+        '• feat: b',
+        '',
+        '*users-traits <https://r/users-traits-1.113|1.113>*',
+        '• fix: a',
+      ].join('\n'),
+    )
+  })
+
   it('keeps the note of a deployment that adds nothing', () => {
     const rollback = changelogOf(
       [

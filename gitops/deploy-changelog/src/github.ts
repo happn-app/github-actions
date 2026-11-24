@@ -101,6 +101,17 @@ export class Backend {
     return candidates.find((_, i) => exists[i])
   }
 
+  // The tags of a service, e.g. `users-traits-1.113`, along with those of the
+  // services sharing its prefix (`users-` lists `users-traits-` too).
+  async serviceTags(service: string): Promise<string[]> {
+    const refs = await this.octokit.paginate(this.octokit.rest.git.listMatchingRefs, {
+      ...this.repository,
+      ref: `tags/${service}-`,
+      per_page: 100,
+    })
+    return refs.map((r) => r.ref.replace(/^refs\/tags\//, ''))
+  }
+
   // The commits of a service in the history of `ref` since a date, newest first.
   async serviceCommits(ref: string, path: string, since: string): Promise<{ sha: string; subject: string }[]> {
     const commits = await this.octokit.paginate(this.octokit.rest.repos.listCommits, {
