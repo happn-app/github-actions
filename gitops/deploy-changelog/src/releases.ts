@@ -10,6 +10,32 @@ export const RELEASE_VERSION = /^[0-9]+(\.[0-9]+)+$/
 // Snapshots built from a branch, e.g. `feat-shop-v2-metrics-logs-1793711562-SNAPSHOT`.
 export const SNAPSHOT = /-SNAPSHOT$/
 
+const versionParts = (version: string): number[] => version.split('.').map(Number)
+
+// Compares two release versions as numbers: `1.10` comes after `1.9`.
+export function compareVersions(a: string, b: string): number {
+  const [pa, pb] = [versionParts(a), versionParts(b)]
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const diff = (pa[i] ?? 0) - (pb[i] ?? 0)
+    if (diff !== 0) {
+      return diff
+    }
+  }
+  return 0
+}
+
+// The release tags of a service strictly between two release versions, oldest first:
+// `users-traits-1.113` between `1.112` and `1.114`.
+export function releasesBetween(tags: string[], service: string, from: string, to: string): string[] {
+  return tags
+    .filter((tag) => tag.startsWith(`${service}-`))
+    .map((tag) => tag.slice(service.length + 1))
+    .filter((version) => RELEASE_VERSION.test(version))
+    .filter((version) => compareVersions(version, from) > 0 && compareVersions(version, to) < 0)
+    .sort(compareVersions)
+    .map((version) => `${service}-${version}`)
+}
+
 // The branch a snapshot was built from: `feat-shop-v2-metrics-logs-1793711562-SNAPSHOT` → `feat-shop-v2-metrics-logs`.
 export function snapshotBranch(snapshot: string): string {
   return snapshot.replace(/-[0-9]+-SNAPSHOT$/, '')

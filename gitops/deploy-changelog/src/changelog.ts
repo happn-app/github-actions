@@ -1,7 +1,7 @@
 import { Section } from './body'
 import { Backend, Gitops } from './github'
 import { KUSTOMIZATION_FILE, changedImages, environmentOf, parseImages } from './kustomization'
-import { RELEASE_VERSION, commitBullet, snapshotBranch } from './releases'
+import { RELEASE_VERSION, commitBullet, releasesBetween, snapshotBranch } from './releases'
 
 export interface Deployment {
   service: string
@@ -82,22 +82,49 @@ export async function section(backend: Backend, deployment: Deployment): Promise
       releases: [{ tag: toTag, url, bullets: [] }],
     }
   }
-  const [added, deployed, url] = await Promise.all([
+  // Releases between two releases get a block of their own, as their changes went out with them.
+  const between = async (): Promise<{ tag: string; held: { sha: string }[] }[]> => {
+    if (!RELEASE_VERSION.test(from) || !RELEASE_VERSION.test(to)) {
+      return []
+    }
+    const tags = releasesBetween(await backend.serviceTags(service), service, from, to)
+    // One at a time: a prod deploy may skip dozens of releases, and GitHub limits bursts of requests.
+    const releases = []
+    for (const tag of tags) {
+      releases.push({ tag, held: await backend.serviceCommits(tag, path, since) })
+    }
+    return releases
+  }
+  const [held, deployed, url, previous] = await Promise.all([
     backend.serviceCommits(toTag, path, since),
     backend.serviceCommits(fromTag, path, since),
     releaseUrl(backend, toTag, to),
+    between(),
   ])
-  const addedShas = new Set(added.map((c) => c.sha))
+  const heldShas = new Set(held.map((c) => c.sha))
   const shipped = new Set(deployed.map((c) => c.sha))
-  const bullets = added.filter((c) => !shipped.has(c.sha)).map((c) => commitBullet(c.subject, backend.url))
+  let added = held.filter((c) => !shipped.has(c.sha))
+  const bulletsOf = (commits: { subject: string }[]): string[] => commits.map((c) => commitBullet(c.subject, backend.url))
+
+  // Each added commit goes to the first release, oldest first, holding it; the
+  // rest to the new version. Releases are listed newest first.
+  const releases = previous.map((release) => {
+    const inRelease = new Set(release.held.map((c) => c.sha))
+    const commits = added.filter((c) => inRelease.has(c.sha))
+    added = added.filter((c) => !inRelease.has(c.sha))
+    return { tag: release.tag, url: `${backend.url}/releases/tag/${release.tag}`, bullets: bulletsOf(commits) }
+  })
+  releases.push({ tag: toTag, url, bullets: bulletsOf(added) })
+  releases.reverse()
+
   // Going back to an older version adds nothing but drops commits: say so, as the
-  // announcement only shows the new version.
-  const rollback = deployed.some((c) => !addedShas.has(c.sha))
-  const note =
-    bullets.length > 0
-      ? undefined
-      : rollback
-        ? `Rollback: ${toTag} drops changes of ${fromTag}, nothing new is deployed.`
-        : `Nothing new compared with ${fromTag}.`
-  return { ...deployment, note, releases: [{ tag: toTag, url, bullets }] }
+  // announcement would otherwise read as a plain deployment.
+  const nothingAdded = releases.every((r) => r.bullets.length === 0)
+  const rollback = deployed.some((c) => !heldShas.has(c.sha))
+  const note = !nothingAdded
+    ? undefined
+    : rollback
+      ? `Rollback: ${toTag} drops changes of ${fromTag}, nothing new is deployed.`
+      : `Nothing new compared with ${fromTag}.`
+  return { ...deployment, note, releases: releases.filter((r, i) => i === 0 || r.bullets.length > 0) }
 }

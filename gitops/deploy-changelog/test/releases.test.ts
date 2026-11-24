@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { commitBullet, serviceCandidates, snapshotBranch } from '../src/releases'
+import { commitBullet, releasesBetween, serviceCandidates, snapshotBranch } from '../src/releases'
+
+describe('releasesBetween', () => {
+  it('keeps the releases of the service strictly between, oldest first, compared as numbers', () => {
+    const tags = ['users-1.9', 'users-1.11', 'users-1.10', 'users-1.10.1', 'users-1.12', 'users-traits-1.10', 'users-feat-1-SNAPSHOT']
+    expect(releasesBetween(tags, 'users', '1.9', '1.12')).toEqual(['users-1.10', 'users-1.10.1', 'users-1.11'])
+  })
+})
 
 describe('serviceCandidates', () => {
   it('trims the image name one segment at a time', () => {

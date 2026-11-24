@@ -57,25 +57,27 @@ export interface Deployer {
   pullRequest: number
 }
 
-// One block per deployed service, as backend/release announces a release: the
-// service and the version in bold, the version linking to the release, then who
-// deployed it and its changes.
+// One block per release, newest first, as backend/release announces a release:
+// the service and the version in bold, the version linking to the release, then
+// its changes. The first one, the deployed version, also says who deployed it.
 function block(section: WrittenSection, deployer: Deployer): string {
-  let title = `*${escape(section.service)}*`
-  const lines: string[] = []
+  const notes: string[] = []
+  const releases: string[][] = []
   for (const line of section.lines) {
     const release = RELEASE_TITLE.exec(line)
     if (release) {
       const version = release[1].startsWith(`${section.service}-`)
         ? release[1].slice(section.service.length + 1)
         : release[1]
-      title = `*${escape(section.service)} <${release[2]}|${escape(version)}>*`
+      releases.push([`*${escape(section.service)} <${release[2]}|${escape(version)}>*`])
     } else if (line.trim()) {
-      lines.push(toMrkdwn(line))
+      ;(releases[releases.length - 1] ?? notes).push(toMrkdwn(line))
     }
   }
   const deployedBy = `deployed by ${escape(deployer.login)} (<${deployer.pullRequestUrl}|gitops#${deployer.pullRequest}>)`
-  return [`${title} ${deployedBy}`, ...lines].join('\n')
+  const [deployed = [`*${escape(section.service)}*`], ...previous] = releases
+  const [title, ...changes] = deployed
+  return [[`${title} ${deployedBy}`, ...notes, ...changes], ...previous].map((lines) => lines.join('\n')).join('\n\n')
 }
 
 export function message(sections: WrittenSection[], deployer: Deployer): string {
